@@ -1,0 +1,15 @@
+.idea/
+.ideaDataSources/
+dataSources/
+lib/
+projectName.iml
+/*.classpath
+/.classpath
+/.springBeans
+*.DS_Store
+*.iml
+*.ipr
+*.iws
+/build
+/local.properties
+target/
