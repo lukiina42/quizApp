@@ -11,13 +11,16 @@ import java.security.Principal;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * This class is used when the client attempts to open socket connection with the server.
+ * It assigns unique id to each of the new client in order to be able to communicate with specific client
+ * later in the session.
+ */
 public class UserHandshakeHandler extends DefaultHandshakeHandler {
-    private final Logger LOG = LoggerFactory.getLogger(UserHandshakeHandler.class);
 
     @Override
     protected Principal determineUser(ServerHttpRequest request, WebSocketHandler wsHandler, Map<String, Object> attributes) {
         final String randomId = UUID.randomUUID().toString();
-        LOG.info("User with ID '{}' opened the page", randomId);
 
         return new UserPrincipal(randomId);
     }

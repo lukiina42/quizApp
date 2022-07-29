@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * Maps objects in model structure to DTO (data transfer object) structure and vice versa
+ */
 @Component
 public class AnswerMapper {
     public Answer mapToModel(AnswerDto answerDto, AnswerPosition answerPosition, Question question){
@@ -18,6 +21,12 @@ public class AnswerMapper {
         return new AnswerDto(answer.getValue(), answer.isCorrect());
     }
 
+    /**
+     * Finds answer in the list based on its position in the quiz
+     * @param answerList list of the answers
+     * @param answerPosition position of seeked answer
+     * @return the found answer. If the answer doesn't exist, return null
+     */
     public AnswerDto getSpecificAnswerDtoFromList(List<Answer> answerList, AnswerPosition answerPosition){
         Answer answerToMap = null;
         for(Answer answer : answerList){

@@ -14,6 +14,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 @Table(name = "questiontext")
 public class QuestionText extends AbstractEntity {
+    @Column(length = 4086)
     private String value;
     @Enumerated(EnumType.STRING)
     private LanguageType languageType;

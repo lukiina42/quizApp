@@ -1,0 +1,37 @@
+.studentResultsWrapper {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.tableWrapper {
+  height: 350px;
+  width: 35%;
+}
+
+@media (max-width: 1300px){
+  .tableWrapper {
+    width: 45%;
+  }
+}
+
+@media (max-width: 1100px){
+  .tableWrapper {
+    width: 50%;
+  }
+}
+
+@media (max-width: 800px){
+  .tableWrapper {
+    width: 65%;
+  }
+}
+
+@media (max-width: 500px){
+  .tableWrapper {
+    width: 80%;
+  }
+}

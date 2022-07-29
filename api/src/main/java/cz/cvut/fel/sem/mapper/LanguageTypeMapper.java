@@ -6,6 +6,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class LanguageTypeMapper {
+    /**
+     * Maps language in string type to Enum type
+     */
     public LanguageType mapStringToLanguageType(String language){
         switch (language){
             case "text/x-csrc":

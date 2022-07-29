@@ -1,27 +1,18 @@
-import { Grid } from '@mui/material'
 import React, { useState } from 'react'
-import SidePanel from './SidePanel'
-import QuestionCreator from './QuestionCreator'
-import { ToastContainer } from 'react-toastify';
+import { Grid } from '@mui/material'
+import SidePanel from './sidePanel/SidePanel'
+import QuestionCreator from './questionParameters/QuestionCreator'
+import { ToastContainer } from 'react-toastify'
+import { newQuestionTypes, languageTypes } from '../../common/types';
 
+//The parent component in which the user creates or edits the quiz. It has 2 child components: side panel
+// where user can switch between the questions and questionCreator when user can set the parameters of the question
 const CreateQuiz = (props) => {
+  //The quiz which comes from the home page (User either creates new quiz, in which 
+  //case only the name will be set or edits existing quiz)
   const quiz = props.location.state ? props.location.state : null
 
-  //defining enum like structure for question types
-  const newQuestionTypes = {
-    QUIZ: "QUIZ",
-    TRUEFALSE: "TRUEFALSE",
-  };
-
-  //defining enum like structure for language types possible in question
-  const languageTypes = {
-    C: "text/x-csrc",
-    CPLUSPLUS: "text/x-c++src",
-    JAVA: "text/x-java",
-    PYTHON: "text/x-python",
-    PLAINTEXT: "PLAINTEXT"
-  }
-
+  //Creates new question with empty values
   const createNewQuizQuestion = (key) => {
     return {
       key: key,
@@ -50,6 +41,7 @@ const CreateQuiz = (props) => {
     }
   }
 
+  //Helper method for merge sort, merges 2 arrays
   function merge(left, right) {
     let sortedArr = []; // the sorted elements will go here
   
@@ -66,6 +58,7 @@ const CreateQuiz = (props) => {
     return [...sortedArr, ...left, ...right];
   }
 
+  //Merge sort to sort the questions in quiz
   function mergeSort(arr) {
     const half = arr.length / 2;
   
@@ -88,6 +81,7 @@ const CreateQuiz = (props) => {
   })
 
   //Contains info about which answer values.
+  //TODO add interface from types here
   const [answersValues, setAnswersValues] = useState({
     topLeftAnswer: "",
     topRightAnswer: "",
@@ -101,17 +95,17 @@ const CreateQuiz = (props) => {
     if(document.getElementById('name').value === ""){
       return "Name of the question is required"
     }
-    for (const [key, value] of Object.entries(answersValues)) {
-      if(value === ""){
-        emptyAnswerValues += 1
-      }
-    }
+    Object.entries(answersValues).forEach(([, value]) => { if(value === ""){
+      emptyAnswerValues += 1
+    } }) 
+    
     if(emptyAnswerValues > 2){
       return "At least 2 answers should be filled"
     }
     return "OK"
   }
 
+  //Counts amount of enters in the text, used in answer text field
   function countBreakLines(text){
     let breakLines = 0
     for(let i = 0; i < text.length; i++){
@@ -122,6 +116,7 @@ const CreateQuiz = (props) => {
     return breakLines;
   }
 
+  //Handles change in one of the answers, handles the input
   const handleAnswerValueChange = (event) => {
     if(event.target.value.length > 150 || countBreakLines(event.target.value) > 2){
       return;
@@ -146,6 +141,7 @@ const CreateQuiz = (props) => {
   //State to define current question displayed in the quiz window. 
   //When the current question should be saved, nextQuestion is updated, which triggers save action in QuestionCreator.js
   const [questionParams, setQuestionParams] = useState({
+    currentOperation: "SAVE",
     currentQuestion: {
       key: 1,
       type: newQuestionTypes.QUIZ
@@ -174,15 +170,19 @@ const CreateQuiz = (props) => {
       direction="row"
       spacing={0}
       justifyContent="flex-start"
-      //Header has 38px
-      sx = {{maxHeight:'calc(100vh - 38px)', height:'94vh'}}
+      //Header has 45px
+      sx = {{height:'calc(100vh - 45px)', minHeight: 0}}
     >
-      <Grid item xs={3} md={2} lg={1}>
+      <Grid item xs={3} md={2} lg={2} xl={1} sx={{
+        // this enables vertical scroll on sidebar only
+        minHeight: 0,
+        display: 'flex',
+        maxHeight: '100%'
+      }}>
         <SidePanel 
           validate={validate}
           currentQuestions={currentQuestions}
           setCurrentQuestions={setCurrentQuestions}
-          newQuestionTypes={newQuestionTypes}
           setQuestionParams={setQuestionParams}
           questionParams={questionParams}
           answersCorrect={answersCorrect}
@@ -190,7 +190,7 @@ const CreateQuiz = (props) => {
           answersValues={answersValues}
         />
       </Grid>
-      <Grid item xs={9} md={10} lg={11}>
+      <Grid item xs={9} md={10} lg={10} xl={11}>
         <QuestionCreator
           validate={validate}
           answersCorrect={answersCorrect}
@@ -202,8 +202,6 @@ const CreateQuiz = (props) => {
           currentQuestions={currentQuestions}
           setQuestionParams={setQuestionParams}
           questionParams={questionParams}
-          newQuestionTypes={newQuestionTypes}
-          languageTypes={languageTypes}
         />
       </Grid>
     </Grid>

@@ -2,7 +2,7 @@ import React from "react";
 import { Grid } from "@mui/material";
 import LoginForm from "./LoginForm";
 
-
+//Displays login form for user
 const LoginPage = () => (
     <Grid
         container

@@ -1,5 +1,6 @@
 import {createTheme} from "@mui/material/styles"
 
+//defines colors used in the app. Those are then used using theme.palette.*
 const theme = createTheme({
   spacing: 8,
   palette: {

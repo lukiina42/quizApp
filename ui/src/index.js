@@ -7,6 +7,7 @@ import reportWebVitals from './reportWebVitals';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './common/theme'
 
+//The root of the app
 ReactDOM.render(
     <Router>
       <ThemeProvider theme={theme}>

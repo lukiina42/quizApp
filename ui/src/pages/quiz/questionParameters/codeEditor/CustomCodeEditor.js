@@ -6,6 +6,8 @@ import 'codemirror/mode/python/python'
 import { Controlled as ControlledEditor } from 'react-codemirror2'
 import './index.css'
 
+//The code editor which displays the text in editted form (color schemes based on language etc.) or enables teacher to
+//write code into while creating the question
 export default function Editor(props) {
   const {
     language,
@@ -14,10 +16,14 @@ export default function Editor(props) {
     languageTypes
   } = props
 
+  //handles change of the text in the editor
   function handleChange(editor, data, value) {
-    onChange(value)
+    if(onChange){
+      onChange(value)
+    }
   }
 
+  //Returns the language in readable text for the user
   const getLanguage = () => {
     let languageText;
     switch(language){

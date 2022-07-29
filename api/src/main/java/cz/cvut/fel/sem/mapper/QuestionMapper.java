@@ -9,6 +9,9 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Maps objects in model structure to DTO (data transfer object) structure and vice versa
+ */
 @Component
 public class QuestionMapper {
     private final QuestionTextMapper questionTextMapper;

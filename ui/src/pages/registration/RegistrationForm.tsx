@@ -2,9 +2,14 @@ import React, { useState, useEffect } from 'react'
 import { Link } from "react-router-dom";
 import { TextField, Grid, Box, Typography, Button } from "@mui/material";
 import { makeStyles } from '@mui/styles';
+import { useUserUpdate, UserStatus } from '../../context/UserContext';
+import { UserInterface } from '../../common/types';
+import { useHistory } from 'react-router-dom'
 
+//custom styling
 const useStyles = makeStyles((theme) => ({
   box: {
+    //@ts-ignore
     padding: theme.spacing(3),
   },
   error: {
@@ -14,9 +19,17 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+//The registration form which enables user to register and start creating quizzes
 const RegistrationForm = () => {
-  const classes = useStyles();
+  const classes = useStyles()
 
+  //history used to move registered user to the home page
+  const history = useHistory()
+
+  //when user registers, move him to the home page
+  const changeUser = useUserUpdate()
+
+  //determines which fields were touched
   const touchedInitial = {
     email: false,
     password: false,
@@ -24,22 +37,27 @@ const RegistrationForm = () => {
     lastTouched: ""
   }
 
+  //initial registration data
   const initialData = {
     email: "",
     password: "",
     passwordAgain: "",
   };
 
+  //registration data containing info about user inputs in the form
   const [registrationData, setRegistrationData] = useState(initialData);
+  //holds info about which fields were already touched by user
   const [touched, setTouched] = useState(touchedInitial);
+  //holds errors
   const [errors, setErrors] = useState(initialData);
 
+  //determines whether the string contains capital letter
   function isUpper(str) {
     const pattern = new RegExp("^(?=.*[A-Z]).+$")
     return pattern.test(str)
   }
 
-  //errors
+  //Determine wrong inputs of the user and set the errors if necessary
   useEffect(() => {
     async function checkErrors() {
       let error = ""
@@ -88,7 +106,8 @@ const RegistrationForm = () => {
       checkErrors();
     }, [registrationData, touched])
 
-    function handleChange(event){
+    //handles inputs in the form from the user
+    function handleChange(event): void{
       event.persist();
       // To enable submit button 
       // Without this user would first have to blur out of the text field to enable submit button
@@ -102,14 +121,17 @@ const RegistrationForm = () => {
     })
   }
 
-  function handleBlur(event){
+  //handles situation when user leaves current text field
+  function handleBlur(event): void{
     event.persist();
     setTouched((cur) => {
       return { ...cur, [event.target.id]: true, lastTouched: event.target.id };
     });
   }
 
-  function handleSubmit(event){
+  //handles submit registration data, sends the request to the server, if the request is successful,
+  // user is logged in and moved to home page
+  function handleSubmit(event): void{
     event.preventDefault()
     const dataToSend = {email: registrationData.email, password: registrationData.password}
     fetch("http://localhost:8080/betterKahoot/users", {
@@ -120,13 +142,25 @@ const RegistrationForm = () => {
       body: JSON.stringify(dataToSend), // body data type must match "Content-Type" header
     })
     .then(response => {
-      if(response.status === 201){
-        alert("you are now registered")
+      if(response.status !== 201){
+        throw new Error("Something went wrong, sorry about that")
       }
+      return response.json()
+    })
+    .then(responseData => {
+      const loggedUser: UserInterface = {
+        id: parseInt(responseData),
+        email: registrationData.email,
+        status: UserStatus.Logged
+      }
+      //@ts-ignore
+      changeUser(loggedUser)
+      history.push("/")
     })
     .catch(error => console.log(error));
   }
 
+  //Determines whether the email user typed is already in the database
   function emailExists(email){
     return fetch("http://localhost:8080/betterKahoot/users/" + email, {
       method: 'GET',
@@ -164,7 +198,6 @@ const RegistrationForm = () => {
               value={registrationData.email}
               sx={{width: 300}}
             />
-            {/* {errors.email && touched.email && <p className={classes.error} role="alert">{errors.email}</p>} */}
           </Grid>
           <Grid item xs={3}>
             <TextField
@@ -199,7 +232,7 @@ const RegistrationForm = () => {
             </Button>
           </Grid>
           <Grid item xs={3}>
-            <Link to='/'>Already have an accout?</Link>
+            <Link to='/login'>Already have an account?</Link>
           </Grid>
         </Grid>
       </form>

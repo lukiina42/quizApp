@@ -58,7 +58,8 @@ public class QuizMapperTest {
     public void mapToDto_validArgumentsProvided_dtoObjectReturned(){
         //Arrange
         List<Question> questionList = List.of(new Question(), new Question());
-        Quiz quiz = new Quiz(questionList, "quizName");
+        //TODO rewrite this, it does not work after adding owner to the quiz
+        Quiz quiz = new Quiz(questionList, "quizName", null);
         List<QuestionDto> dtoList = List.of(new QuestionDto(), new QuestionDto());
         when(questionMapper.mapListToDto(quiz.getQuestions())).thenReturn(dtoList);
 

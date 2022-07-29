@@ -6,6 +6,9 @@ import cz.cvut.fel.sem.model.quizQuestion.Question;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * Maps objects in model structure to DTO (data transfer object) structure and vice versa
+ */
 @Component
 public class QuestionTextMapper {
     private final LanguageTypeMapper languageTypeMapper;

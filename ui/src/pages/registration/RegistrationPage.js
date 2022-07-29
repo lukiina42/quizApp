@@ -1,8 +1,8 @@
 import React from "react";
 import { Grid } from "@mui/material";
-import RegistrationForm from "./RegistrationForm.js";
+import RegistrationForm from "./RegistrationForm";
 
-
+//Displays registration form
 const RegistrationPage = () => (
     <Grid
         container

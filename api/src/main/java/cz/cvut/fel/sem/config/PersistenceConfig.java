@@ -15,6 +15,10 @@ import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
+
+/**
+ * Configuration which makes the JPA work
+ */
 @Configuration
 @PropertySource("classpath:eclipselink.properties")     // Contains additional, Eclipselink-specific configuration
 public class PersistenceConfig extends JpaBaseConfiguration {
