@@ -26,7 +26,7 @@ interface LoggedUserHomeProps {
   handleOptionsOpen(event, id: number): void;
 }
 
-//The home for logged in user. It displays the current user's 
+//The home for logged in user. It displays the current user's
 //quizzes and enables him to edit, delete or start (Start testing students) them
 export default function LoggedUserHome({
   quizes,
@@ -56,7 +56,13 @@ export default function LoggedUserHome({
           padding: "40px 0 0 20px",
         }}
       >
-        <Grid container direction="column" spacing={2} alignItems="center" justifyContent="center">
+        <Grid
+          container
+          direction="column"
+          spacing={2}
+          alignItems="center"
+          justifyContent="center"
+        >
           {quizes.length === 0 ? (
             <Typography fontWeight={"bold"}>
               You sadly don't have any created quizzes, create one using the

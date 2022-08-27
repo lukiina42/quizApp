@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useUser, UserStatus } from "../../context/UserContext";
 import { UserInterface } from "../../common/types";
 import LoggedUserHome from "./loggedUser/LoggedUserHome";
-import GuestHome from "./guest/GuestHome"
+import GuestHome from "./guest/GuestHome";
 import { Quiz } from "../../common/types";
 
 export interface AnchorType {
@@ -33,7 +33,7 @@ const Home = () => {
     return quizToReturn;
   };
 
-  //Anchor state, holds the DOM element where the popover should be 
+  //Anchor state, holds the DOM element where the popover should be
   //displayed and id (key) of the quiz about which the popover displays possibilities
   const anchorInitial: AnchorType = {
     element: null,
@@ -94,27 +94,27 @@ const Home = () => {
 
   //At the start or when current user changes, decide whether to fetch all quizzes
   useEffect(() => {
-    if(currentUser.status !== UserStatus.Logged){
-      return
+    if (currentUser.status !== UserStatus.Logged) {
+      return;
     }
     fetchAllQuizzes(currentUser.id);
   }, [location, currentUser]);
 
   return (
     <>
-    {currentUser.status === UserStatus.Logged ?
-      <LoggedUserHome
-        quizes={quizes}
-        anchorEl={anchorEl}
-        handleClose={handleClose}
-        findQuizById={findQuizById}
-        handleDeleteQuiz={handleDeleteQuiz}
-        open={open}
-        handleOptionsOpen={handleOptionsOpen}
-      />
-      :
-      <GuestHome />
-    }
+      {currentUser.status === UserStatus.Logged ? (
+        <LoggedUserHome
+          quizes={quizes}
+          anchorEl={anchorEl}
+          handleClose={handleClose}
+          findQuizById={findQuizById}
+          handleDeleteQuiz={handleDeleteQuiz}
+          open={open}
+          handleOptionsOpen={handleOptionsOpen}
+        />
+      ) : (
+        <GuestHome />
+      )}
     </>
   );
 };

@@ -1,4 +1,3 @@
-
 .answersDiv {
   height: 30vh;
   display: flex;
@@ -7,7 +6,7 @@
   align-items: center;
 }
 
-@media (orientation: portrait){
+@media (orientation: portrait) {
   .answersDiv {
     height: 60vh;
   }
@@ -15,36 +14,36 @@
 
 @media (max-width: 600px) {
   .middleTextField {
-    width: 100%
+    width: 100%;
   }
   .answersDiv {
-    width: 98%
+    width: 98%;
   }
 }
 
 @media (min-width: 600px) {
   .middleTextField {
-    width: 80%
+    width: 80%;
   }
   .answersDiv {
-    width: 90%
+    width: 90%;
   }
 }
 
 @media (min-width: 800px) {
   .middleTextField {
-    width: 50%
+    width: 50%;
   }
   .answersDiv {
-    width: 80%
+    width: 80%;
   }
 }
 
 @media (min-width: 1200px) {
   .middleTextField {
-    width: 30%
+    width: 30%;
   }
   .answersDiv {
-    width: 60%
+    width: 60%;
   }
 }
