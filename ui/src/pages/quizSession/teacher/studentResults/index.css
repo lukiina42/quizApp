@@ -12,25 +12,25 @@
   width: 35%;
 }
 
-@media (max-width: 1300px){
+@media (max-width: 1300px) {
   .tableWrapper {
     width: 45%;
   }
 }
 
-@media (max-width: 1100px){
+@media (max-width: 1100px) {
   .tableWrapper {
     width: 50%;
   }
 }
 
-@media (max-width: 800px){
+@media (max-width: 800px) {
   .tableWrapper {
     width: 65%;
   }
 }
 
-@media (max-width: 500px){
+@media (max-width: 500px) {
   .tableWrapper {
     width: 80%;
   }

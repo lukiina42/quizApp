@@ -9,7 +9,7 @@ function Footer() {
       direction="row"
       spacing={3}
       justifyContent="center"
-      height={'5vh'}
+      height={"5vh"}
     >
       <h1>This is footer</h1>
     </Grid>

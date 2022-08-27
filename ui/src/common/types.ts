@@ -14,7 +14,7 @@ export interface Question {
   question: {
     value: string;
     language: string;
-  }
+  };
   topLeftAnswer: Answer;
   topRightAnswer: Answer;
   bottomLeftAnswer: Answer;
@@ -40,20 +40,20 @@ export const languageTypes = {
   CPLUSPLUS: "text/x-c++src",
   JAVA: "text/x-java",
   PYTHON: "text/x-python",
-  PLAINTEXT: "PLAINTEXT"
-}
+  PLAINTEXT: "PLAINTEXT",
+};
 
-//Initial state of the answers true/false parameter. 
+//Initial state of the answers true/false parameter.
 //The user can change those values while creating quiz or while answering to the question in the session
 export const answersCorrectInitialState = {
   TopLeft: false,
   TopRight: false,
   BottomRight: false,
-  BottomLeft: false
-}
+  BottomLeft: false,
+};
 
-//This interface is used in useState hook multiple times, 
-//for example when teacher is creating a question - the information 
+//This interface is used in useState hook multiple times,
+//for example when teacher is creating a question - the information
 //whether the answer is marked as correct is saved in this interface
 export interface AnswersCorrect {
   TopLeft: boolean;

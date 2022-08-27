@@ -1,15 +1,14 @@
-import { Button, Grid } from "@mui/material"
-import { useHistory } from 'react-router-dom'
-
+import { Button, Grid } from "@mui/material";
+import { useHistory } from "react-router-dom";
 
 //The home page for guest (not logged in user). It displays just 3 buttons with options to join the quiz, register or login
 const GuestHome = () => {
-  const history = useHistory()
+  const history = useHistory();
 
   //handles buttons, moves user to different location based on which button did he click. The buttons have ids equal locations
   const handleButtons = (event): void => {
-    history.push("/" + event.target.id)
-  }
+    history.push("/" + event.target.id);
+  };
 
   return (
     <>
@@ -22,7 +21,7 @@ const GuestHome = () => {
         sx={{
           height: "calc(100vh - 45px)",
           width: "100%",
-          margin: 0
+          margin: 0,
         }}
       >
         <Grid item>
@@ -31,7 +30,7 @@ const GuestHome = () => {
             color="primary"
             variant="contained"
             size="large"
-            sx={{width: 250, marginBottom: 5}}
+            sx={{ width: 250, marginBottom: 5 }}
             onClick={handleButtons}
           >
             Join a quiz
@@ -43,7 +42,7 @@ const GuestHome = () => {
             color="primary"
             variant="contained"
             size="large"
-            sx={{width: 250, marginBottom: 5}}
+            sx={{ width: 250, marginBottom: 5 }}
             onClick={handleButtons}
           >
             Login
@@ -55,7 +54,7 @@ const GuestHome = () => {
             color="primary"
             variant="contained"
             size="large"
-            sx={{width: 250}}
+            sx={{ width: 250 }}
             onClick={handleButtons}
           >
             Register
@@ -63,7 +62,7 @@ const GuestHome = () => {
         </Grid>
       </Grid>
     </>
-  )
-}
+  );
+};
 
-export default GuestHome
+export default GuestHome;

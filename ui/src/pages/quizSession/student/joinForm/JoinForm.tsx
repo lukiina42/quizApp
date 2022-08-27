@@ -8,7 +8,7 @@ interface JoinFormProps {
 }
 
 //The form with which the user can attempt to join the session. It has session id field and name field.
-//When the user submits his attempt, the server checks whether an opened session with the id exists and 
+//When the user submits his attempt, the server checks whether an opened session with the id exists and
 //whether the name is already in the session
 export default function JoinForm({
   sessionId,
