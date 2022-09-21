@@ -392,10 +392,10 @@ const StartQuiz = (props) => {
                   questionName={currentQuestion?.name}
                   codeTextProp={currentQuestion?.question.value}
                   answersValues={{
-                    topLeftAnswer: currentQuestion?.topLeftAnswer.value,
-                    topRightAnswer: currentQuestion?.topRightAnswer.value,
-                    bottomLeftAnswer: currentQuestion?.bottomLeftAnswer.value,
-                    bottomRightAnswer: currentQuestion?.bottomRightAnswer.value,
+                    topLeftAnswer: currentQuestion ? currentQuestion.topLeftAnswer.value : "",
+                    topRightAnswer: currentQuestion ? currentQuestion.topRightAnswer.value : "",
+                    bottomLeftAnswer: currentQuestion ? currentQuestion?.bottomLeftAnswer.value : "",
+                    bottomRightAnswer: currentQuestion ? currentQuestion?.bottomRightAnswer.value : "",
                   }}
                   languageProp={currentQuestion?.question.language}
                 />

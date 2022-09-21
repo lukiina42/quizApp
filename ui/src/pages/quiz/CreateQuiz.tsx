@@ -3,7 +3,7 @@ import { Grid } from "@mui/material";
 import SidePanel from "./sidePanel/SidePanel";
 import QuestionCreator from "./questionParameters/QuestionCreator";
 import { ToastContainer } from "react-toastify";
-import { newQuestionTypes, languageTypes, AnswerValues, AnswersCorrect, ValidationStatus } from "../../common/types";
+import { newQuestionTypes, LanguageType, AnswerValues, AnswersCorrect, ValidationStatus } from "../../common/types";
 import { Quiz, Question } from "../../common/types";
 
 interface CurrentAndNextQuestion {
@@ -38,7 +38,7 @@ const CreateQuiz = (props) => {
       name: "",
       question: {
         value: "",
-        language: languageTypes.C,
+        language: LanguageType.C,
       },
       topLeftAnswer: {
         value: "",
@@ -223,9 +223,7 @@ const CreateQuiz = (props) => {
             setCurrentQuiz={setCurrentQuiz}
             setQuestionParams={setQuestionParams}
             questionParams={questionParams}
-            answersCorrect={answersCorrect}
             createNewQuizQuestion={createNewQuizQuestion}
-            answersValues={answersValues}
           />
         </Grid>
         <Grid item xs={9} md={10} lg={10} xl={11}>

@@ -13,7 +13,7 @@ export interface Question {
   name: string;
   question: {
     value: string;
-    language: string;
+    language: LanguageType;
   };
   topLeftAnswer: Answer;
   topRightAnswer: Answer;
@@ -35,12 +35,12 @@ export const newQuestionTypes = {
 };
 
 //defining enum like structure for language types possible in question
-export const languageTypes = {
-  C: "text/x-csrc",
-  CPLUSPLUS: "text/x-c++src",
-  JAVA: "text/x-java",
-  PYTHON: "text/x-python",
-  PLAINTEXT: "PLAINTEXT",
+export enum LanguageType {
+  C = "text/x-csrc",
+  CPLUSPLUS = "text/x-c++src",
+  JAVA = "text/x-java",
+  PYTHON = "text/x-python",
+  PLAINTEXT = "PLAINTEXT",
 };
 
 //Initial state of the answers true/false parameter.

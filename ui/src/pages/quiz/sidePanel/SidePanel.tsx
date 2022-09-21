@@ -5,7 +5,7 @@ import Popover from "@mui/material/Popover";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { AnswersCorrect, AnswerValues, newQuestionTypes, Question, Quiz, ValidationStatus } from "../../../common/types";
+import { newQuestionTypes, Quiz, ValidationStatus } from "../../../common/types";
 import { CurrentOperationInQuestion, QuestionParams } from "../CreateQuiz";
 
 interface SidePanelProps {
@@ -15,8 +15,6 @@ interface SidePanelProps {
   validate: () => ValidationStatus,
   questionParams: QuestionParams,
   currentQuiz: Quiz,
-  answersCorrect: AnswersCorrect,
-  answersValues: AnswerValues
 }
 
 //Represents the panel on the left, which contains the questions currently created in the quiz
@@ -27,15 +25,13 @@ const SidePanel = (props: SidePanelProps) => {
     questionParams,
     createNewQuizQuestion,
     currentQuiz,
-    validate,
-    answersCorrect,
-    answersValues
+    validate
   } = props;
   //questions displayed in the panel
   const currentQuestions = currentQuiz.questions;
 
   //state used to define where the popover, which contains the new question type options, should get displayed (around which tag)
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 
   //derived states
   //open says whether the popover is displayed or not
@@ -43,17 +39,17 @@ const SidePanel = (props: SidePanelProps) => {
   const id = open ? "simple-popover" : undefined;
 
   //handles popover which displays which type of new question the user wants to create
-  const handlePopoverChange = (event) => {
+  const handlePopoverChange = (event: React.MouseEvent<SVGSVGElement>): void => {
     open = !open;
     if (open) {
-      setAnchorEl(event.currentTarget);
+      setAnchorEl(event.currentTarget as any);
     } else {
       setAnchorEl(null);
     }
   };
 
   //close the popover
-  const handlePopoverClose = () => setAnchorEl(null);
+  const handlePopoverClose = (): void => setAnchorEl(null);
 
   //default settings of the notifications, stored in const to prevent code repeating, using spred operator instead
   const toastSettings = {
@@ -68,7 +64,7 @@ const SidePanel = (props: SidePanelProps) => {
 
   //defines what should happen if user creates new question => create new empty question and
   //save the current one in QuestionCreator.js using the questionParams state
-  const handleNewQuestionClick = (event) => {
+  const handleNewQuestionClick = (event): void => {
     const status = validate();
     if (status !== "OK") {
       toast.warn(status, {
@@ -106,7 +102,7 @@ const SidePanel = (props: SidePanelProps) => {
 
   //defines what happens if user clicks on other already existing question, change questionParams state, which triggers
   //the save operation of current question in QuestionCreator.js
-  const handleQuestionClick = (event) => {
+  const handleQuestionClick = (event): void => {
     const status = validate();
     if (
       questionParams.currentQuestion.key !== parseInt(event.currentTarget.id)
@@ -130,7 +126,7 @@ const SidePanel = (props: SidePanelProps) => {
   };
 
   //Gets triggered when user clicks on the trash icon in the question, the question then gets deleted
-  const handleDeleteQuestionIcon = (key) => {
+  const handleDeleteQuestionIcon = (key: number): void => {
     //user wants to delete current question and only one question is in the quiz:
     //notify user that there has to be at least one question in the quiz
     if (currentQuestions.length === 1) {
@@ -246,6 +242,7 @@ const SidePanel = (props: SidePanelProps) => {
         ))}
         <Grid item>
           <AddBoxRoundedIcon
+            component={"svg"}
             color="info"
             onMouseEnter={(event) =>
               (event.currentTarget.style.cursor = "pointer")
@@ -257,7 +254,7 @@ const SidePanel = (props: SidePanelProps) => {
           />
         </Grid>
       </Grid>
-      {/* The popover for which is used the state. It's open operation is trigerred by clicking on + button in the side panel */}
+      {/* The popover for which the state is used. It's open operation is trigerred by clicking on + button in the side panel */}
       <Popover
         id={id}
         open={open}

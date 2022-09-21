@@ -19,7 +19,7 @@ const UserContext = createContext<UserInterface>(initialLoggedUserState);
 const UserContextUpdate = createContext({});
 
 //returns current user
-export function useUser() {
+export function useUser(): UserInterface {
   return useContext(UserContext);
 }
 
