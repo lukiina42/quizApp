@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
 //Represents the right side of the page, where user sets parameters of the question
 const QuestionCreator = (props) => {
   const {
-    setCurrentQuestions,
+    setCurrentQuiz,
     questionParams,
     setQuestionParams,
     answersCorrect,
@@ -47,7 +47,7 @@ const QuestionCreator = (props) => {
     codeTextProp,
     languageProp,
   } = props;
-  const currentQuestions = !disabled ? props.currentQuestions.questions : null;
+  const currentQuestions = !disabled ? props.currentQuiz.questions : null;
 
   //User whose id is sent with the request to save the quiz
   const currentUser = useUser();
@@ -117,7 +117,7 @@ const QuestionCreator = (props) => {
       finalQuestions = [...currentQuestions];
       finalQuestions[questionParams.currentQuestion.key - 1] = newQuestion;
     }
-    setCurrentQuestions((currentQuestions) => {
+    setCurrentQuiz((currentQuestions) => {
       let questions = [...currentQuestions.questions];
       questions[questionParams.currentQuestion.key - 1] = newQuestion;
       return { ...currentQuestions, questions: questions };
@@ -219,7 +219,7 @@ const QuestionCreator = (props) => {
     }
   }, [
     questionParams,
-    //, answersCorrect, currentQuestionType, currentQuestions, newQuestionTypes, setCurrentQuestions, setSaveCurrQuestion
+    //, answersCorrect, currentQuestionType, currentQuestions, newQuestionTypes, setCurrentQuiz, setSaveCurrQuestion
   ]);
 
   //Saves the whole quiz
@@ -245,8 +245,9 @@ const QuestionCreator = (props) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        id: props.currentQuestions.id ? props.currentQuestions.id : null,
-        name: props.currentQuestions.name,
+        //initial id of quiz not saved in db is 0
+        id: props.currentQuiz.id !== 0 ? props.currentQuiz.id : null,
+        name: props.currentQuiz.name,
         questions: finalQuestions,
       }), // body data type must match "Content-Type" header
     })
@@ -432,7 +433,7 @@ const QuestionCreator = (props) => {
                 Save the quiz
               </Button>
               <Button
-                color="neutral"
+                color="info"
                 variant="contained"
                 sx={{ textTransform: "none" }}
                 className={classes.bottomButtons}

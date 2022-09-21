@@ -1,23 +1,38 @@
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import { Grid, Button, Typography, Box } from "@mui/material";
 import AddBoxRoundedIcon from "@mui/icons-material/AddBoxRounded";
 import Popover from "@mui/material/Popover";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { newQuestionTypes } from "../../../common/types";
+import { AnswersCorrect, AnswerValues, newQuestionTypes, Question, Quiz, ValidationStatus } from "../../../common/types";
+import { CurrentOperationInQuestion, QuestionParams } from "../CreateQuiz";
+
+interface SidePanelProps {
+  setCurrentQuiz: Dispatch<SetStateAction<Quiz>>,
+  setQuestionParams: Dispatch<SetStateAction<QuestionParams>>,
+  createNewQuizQuestion: (key: number) => any, //TODO should be Question
+  validate: () => ValidationStatus,
+  questionParams: QuestionParams,
+  currentQuiz: Quiz,
+  answersCorrect: AnswersCorrect,
+  answersValues: AnswerValues
+}
 
 //Represents the panel on the left, which contains the questions currently created in the quiz
-const SidePanel = (props) => {
+const SidePanel = (props: SidePanelProps) => {
   const {
-    setCurrentQuestions,
+    setCurrentQuiz,
     setQuestionParams,
     questionParams,
     createNewQuizQuestion,
+    currentQuiz,
     validate,
+    answersCorrect,
+    answersValues
   } = props;
   //questions displayed in the panel
-  const currentQuestions = props.currentQuestions.questions;
+  const currentQuestions = currentQuiz.questions;
 
   //state used to define where the popover, which contains the new question type options, should get displayed (around which tag)
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -42,7 +57,7 @@ const SidePanel = (props) => {
 
   //default settings of the notifications, stored in const to prevent code repeating, using spred operator instead
   const toastSettings = {
-    position: "top-right",
+    position: "top-right" as const,
     autoClose: 7000,
     hideProgressBar: false,
     closeOnClick: true,
@@ -73,7 +88,7 @@ const SidePanel = (props) => {
               true: "",
               false: "",
             };
-      setCurrentQuestions((currentQuestions) => {
+      setCurrentQuiz((currentQuestions) => {
         return {
           ...currentQuestions,
           questions: [...currentQuestions.questions, newQuestion],
@@ -83,7 +98,7 @@ const SidePanel = (props) => {
         return {
           ...currQuestionParams,
           nextQuestion: newQuestion,
-          currentOperation: "SAVE",
+          currentOperation: CurrentOperationInQuestion.SAVE,
         };
       });
     }
@@ -102,11 +117,13 @@ const SidePanel = (props) => {
         });
         return;
       }
+      //TODO rename type to questionType in createNewQuizQuestion
+      //@ts-ignore
       setQuestionParams((currQuestionParams) => {
         return {
           ...currQuestionParams,
           nextQuestion: currentQuestions[event.currentTarget.id - 1],
-          currentOperation: "SAVE",
+          currentOperation: CurrentOperationInQuestion.SAVE,
         };
       });
     }
@@ -123,7 +140,7 @@ const SidePanel = (props) => {
       return;
     }
     //delete the question from the list
-    setCurrentQuestions((currQuiz) => {
+    setCurrentQuiz((currQuiz) => {
       const quiz = { ...currQuiz };
       const questions = [...quiz.questions];
       questions.splice(key - 1, 1);
@@ -140,6 +157,8 @@ const SidePanel = (props) => {
     });
     //user wants to delete current question and there are more questions in the quiz
     if (questionParams.currentQuestion.key === key) {
+      //TODO rename type to questionType in createNewQuizQuestion
+      //@ts-ignore
       setQuestionParams((currQuestionParams) => {
         return {
           ...currQuestionParams,
@@ -147,7 +166,7 @@ const SidePanel = (props) => {
             key < currentQuestions.length
               ? currentQuestions[key]
               : currentQuestions[key - 2],
-          currentOperation: "DELETE",
+          currentOperation: CurrentOperationInQuestion.DELETE,
         };
       });
     }
@@ -186,7 +205,8 @@ const SidePanel = (props) => {
               }}
             >
               <Box
-                id={question.key}
+                component={"div"}
+                id={question.key.toString()}
                 onClick={handleQuestionClick}
                 onMouseEnter={(event) =>
                   (event.currentTarget.style.cursor = "pointer")
@@ -207,7 +227,7 @@ const SidePanel = (props) => {
                 )}
               </Box>
               <DeleteIcon
-                color="neutral"
+                color="info"
                 onClick={() => handleDeleteQuestionIcon(question.key)}
                 onMouseEnter={(event) => {
                   event.currentTarget.style.backgroundColor = "#B2ADFD";
@@ -226,7 +246,7 @@ const SidePanel = (props) => {
         ))}
         <Grid item>
           <AddBoxRoundedIcon
-            color="neutral"
+            color="info"
             onMouseEnter={(event) =>
               (event.currentTarget.style.cursor = "pointer")
             }

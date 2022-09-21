@@ -76,3 +76,9 @@ export interface UserInterface {
   email: string;
   status: string;
 }
+
+export enum ValidationStatus{
+  OK = "OK",
+  TWOANSWERS = "At least 2 answers should be filled",
+  NAMEOFQUESTION = "Name of the question is required"
+}
