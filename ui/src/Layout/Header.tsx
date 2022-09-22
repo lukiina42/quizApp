@@ -10,7 +10,7 @@ import {
 
 //The header of the application.
 //It is displayed differently based on current url location in the app and whether the user is guest or logged in
-export default function Header(props) {
+export default function Header() {
   //The location is saved in this variable, used in useEffect to find out when user changes the page and react to it
   const location = useLocation();
   //History used to move between pages
@@ -31,7 +31,7 @@ export default function Header(props) {
   const id = open ? "simple-popover" : undefined;
 
   //Handles the popover. If popover is currently opened, it closes it and vice versa
-  const handlePopoverChange = (event) => {
+  const handlePopoverChange = (event): void => {
     open = !open;
     if (open) {
       setAnchorEl(event.currentTarget);
@@ -41,16 +41,18 @@ export default function Header(props) {
   };
 
   //Closes the popover
-  const handlePopoverClose = () => setAnchorEl(null);
+  const handlePopoverClose = (): void => setAnchorEl(null);
 
   //Handles create new quiz button, moves user to create quiz location with the name of the quiz
   const handleCreateClick = () => {
-    history.push("/quiz", { name: quizName.current.value });
+    //@ts-ignore
+    history.push("/quiz", { name: quizName.current?.value });
     handlePopoverClose();
   };
 
   //Logouts the user
-  const handleLogout = () => {
+  const handleLogout = (): void => {
+    //@ts-ignore
     changeUser(initialLoggedUserState);
     history.push("/");
   };
