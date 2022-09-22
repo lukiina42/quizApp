@@ -3,24 +3,42 @@ import { Grid } from "@mui/material";
 import SidePanel from "./sidePanel/SidePanel";
 import QuestionCreator from "./questionParameters/QuestionCreator";
 import { ToastContainer } from "react-toastify";
-import { newQuestionTypes, languageTypes } from "../../common/types";
+import { NewQuestionType, LanguageType, AnswerValues, AnswersCorrect, ValidationStatus } from "../../common/types";
+import { Quiz, Question } from "../../common/types";
+
+interface CurrentAndNextQuestion {
+  key: number,
+  type: string
+}
+
+export enum CurrentOperationInQuestion {
+  SAVE = "SAVE",
+  DELETE = "DELETE",
+}
+
+export interface QuestionParams {
+  currentOperation: CurrentOperationInQuestion,
+  currentQuestion: CurrentAndNextQuestion,
+  nextQuestion: CurrentAndNextQuestion
+}
 
 //The parent component in which the user creates or edits the quiz. It has 2 child components: side panel
 // where user can switch between the questions and questionCreator when user can set the parameters of the question
 const CreateQuiz = (props) => {
   //The quiz which comes from the home page (User either creates new quiz, in which
   //case only the name will be set or edits existing quiz)
-  const quiz = props.location.state ? props.location.state : null;
+  const quiz: Quiz = props.location.state ? props.location.state : null;
 
+  //TODO rename type to questionType. Not all answers are then displayed in a new question
   //Creates new question with empty values
-  const createNewQuizQuestion = (key) => {
+  const createNewQuizQuestion = (key: number) => {
     return {
       key: key,
-      type: newQuestionTypes.QUIZ,
+      type: NewQuestionType.QUIZ,
       name: "",
       question: {
         value: "",
-        language: languageTypes.C,
+        language: LanguageType.C,
       },
       topLeftAnswer: {
         value: "",
@@ -42,14 +60,17 @@ const CreateQuiz = (props) => {
   };
 
   //Helper method for merge sort, merges 2 arrays
-  function merge(left, right) {
-    let sortedArr = []; // the sorted elements will go here
+  function merge(left: Question[], right: Question[]): Question[] {
+    let sortedArr: Question[] = []; // the sorted elements will go here
 
     while (left.length && right.length) {
       // insert the smallest element to the sortedArr
       if (left[0].key < right[0].key) {
+        //Considering the condition zero index of the arrays cannot be undefined so this ts error can be ignored
+        //@ts-ignore: Type 'undefined' is not assignable to type 'never'
         sortedArr.push(left.shift());
       } else {
+        //@ts-ignore: Type 'undefined' is not assignable to type 'never'
         sortedArr.push(right.shift());
       }
     }
@@ -59,8 +80,8 @@ const CreateQuiz = (props) => {
   }
 
   //Merge sort to sort the questions in quiz
-  function mergeSort(arr) {
-    const half = arr.length / 2;
+  function mergeSort(arr: Question[]): Question[] {
+    const half: number = arr.length / 2;
 
     // the base case is array length <=1
     if (arr.length <= 1) {
@@ -73,7 +94,7 @@ const CreateQuiz = (props) => {
   }
 
   //Contains info about which answers are correct and which are false. This info is saved to each question.
-  const [answersCorrect, setAnswersCorrect] = useState({
+  const [answersCorrect, setAnswersCorrect] = useState<AnswersCorrect>({
     TopLeft: false,
     TopRight: false,
     BottomRight: false,
@@ -82,7 +103,7 @@ const CreateQuiz = (props) => {
 
   //Contains info about which answer values.
   //TODO add interface from types here
-  const [answersValues, setAnswersValues] = useState({
+  const [answersValues, setAnswersValues] = useState<AnswerValues>({
     topLeftAnswer: "",
     topRightAnswer: "",
     bottomLeftAnswer: "",
@@ -90,10 +111,11 @@ const CreateQuiz = (props) => {
   });
 
   //validates current question
-  function validate() {
+  function validate(): ValidationStatus {
     let emptyAnswerValues = 0;
-    if (document.getElementById("name").value === "") {
-      return "Name of the question is required";
+    const nameElement = document.getElementById("name") as HTMLInputElement | null
+    if (nameElement !== null && nameElement.value  === "") {
+      return ValidationStatus.NAMEOFQUESTION;
     }
     Object.entries(answersValues).forEach(([, value]) => {
       if (value === "") {
@@ -102,13 +124,13 @@ const CreateQuiz = (props) => {
     });
 
     if (emptyAnswerValues > 2) {
-      return "At least 2 answers should be filled";
+      return ValidationStatus.TWOANSWERS;
     }
-    return "OK";
+    return ValidationStatus.OK;
   }
 
   //Counts amount of enters in the text, used in answer text field
-  function countBreakLines(text) {
+  function countBreakLines(text: string): number {
     let breakLines = 0;
     for (let i = 0; i < text.length; i++) {
       if (text[i] === "\n") {
@@ -119,7 +141,7 @@ const CreateQuiz = (props) => {
   }
 
   //Handles change in one of the answers, handles the input
-  const handleAnswerValueChange = (event) => {
+  const handleAnswerValueChange = (event): void => {
     if (
       event.target.value.length > 150 ||
       countBreakLines(event.target.value) > 2
@@ -131,30 +153,33 @@ const CreateQuiz = (props) => {
     });
   };
 
+  //TODO
   //Created questions in the quiz
   //Is initialized with one empty question shown to the user when he opens the page
-  const [currentQuestions, setCurrentQuestions] = useState(() => {
+  //@ts-ignore
+  const [currentQuiz, setCurrentQuiz] = useState<Quiz>(() => {
     let quizToReturn = quiz.questions
       ? quiz
-      : { name: quiz.name, questions: [createNewQuizQuestion(1)] };
+      : { id: 0, name: quiz.name, questions: [createNewQuizQuestion(1)] };
     if (quizToReturn.questions) {
+      //@ts-ignore
       let questions = mergeSort(quizToReturn.questions);
       quizToReturn.questions = questions;
     }
     return quizToReturn;
-  }, []);
+  });
 
   //State to define current question displayed in the quiz window.
   //When the current question should be saved, nextQuestion is updated, which triggers save action in QuestionCreator.js
-  const [questionParams, setQuestionParams] = useState({
-    currentOperation: "SAVE",
+  const [questionParams, setQuestionParams] = useState<QuestionParams>({
+    currentOperation: CurrentOperationInQuestion.SAVE,
     currentQuestion: {
       key: 1,
-      type: newQuestionTypes.QUIZ,
+      type: NewQuestionType.QUIZ,
     },
     nextQuestion: {
       key: 1,
-      type: newQuestionTypes.QUIZ,
+      type: NewQuestionType.QUIZ,
     },
   });
 
@@ -194,13 +219,11 @@ const CreateQuiz = (props) => {
         >
           <SidePanel
             validate={validate}
-            currentQuestions={currentQuestions}
-            setCurrentQuestions={setCurrentQuestions}
+            currentQuiz={currentQuiz}
+            setCurrentQuiz={setCurrentQuiz}
             setQuestionParams={setQuestionParams}
             questionParams={questionParams}
-            answersCorrect={answersCorrect}
             createNewQuizQuestion={createNewQuizQuestion}
-            answersValues={answersValues}
           />
         </Grid>
         <Grid item xs={9} md={10} lg={10} xl={11}>
@@ -211,8 +234,8 @@ const CreateQuiz = (props) => {
             answersValues={answersValues}
             handleAnswerValueChange={handleAnswerValueChange}
             setAnswersValues={setAnswersValues}
-            setCurrentQuestions={setCurrentQuestions}
-            currentQuestions={currentQuestions}
+            setCurrentQuiz={setCurrentQuiz}
+            currentQuiz={currentQuiz}
             setQuestionParams={setQuestionParams}
             questionParams={questionParams}
           />

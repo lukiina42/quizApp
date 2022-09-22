@@ -135,7 +135,7 @@ const StartQuiz = (props) => {
   );
   //Holds info about how many students answered to current tested question out of how many
   const [studentsAnsweredInfo, setStudentsAnsweredInfo] =
-    useState<StudentAnsweredType | null>(null);
+    useState<StudentAnsweredType | undefined>(undefined);
   //In current implementation when user closes the page, the function which sends the request to end the session is called.
   //This is unnecessary at the end of the quiz, this state helps to determine whether the request should be called or not
   const quizAlreadyEnded = useRef(false);
@@ -147,6 +147,10 @@ const StartQuiz = (props) => {
   );
   //boolean telling whether current question is the last one
   const lastQuestion = currentQuizKey === quiz.questions.length;
+
+  useEffect(() => {
+    console.log(studentsAnsweredInfo)
+  }, [studentsAnsweredInfo])
 
   //when teacher opens connection with the server, create new session
   const onConnected = () => {
@@ -180,6 +184,12 @@ const StartQuiz = (props) => {
         const questionEvaluation: QuestionEvaluationType = payloadData;
         setCurrentQuestionEvaluation(questionEvaluation);
         setCurrentLayout(LayoutType.ShowEvaluation);
+        setStudentsAnsweredInfo((prevState) => {
+          return {
+            amountOfStudents: prevState ? prevState.amountOfStudents : 0,
+            amountOfAnswers: 0
+          }
+        })
         break;
       //The server returns results of the students in the quiz
       case MessageType.StudentResults:
@@ -392,10 +402,10 @@ const StartQuiz = (props) => {
                   questionName={currentQuestion?.name}
                   codeTextProp={currentQuestion?.question.value}
                   answersValues={{
-                    topLeftAnswer: currentQuestion?.topLeftAnswer.value,
-                    topRightAnswer: currentQuestion?.topRightAnswer.value,
-                    bottomLeftAnswer: currentQuestion?.bottomLeftAnswer.value,
-                    bottomRightAnswer: currentQuestion?.bottomRightAnswer.value,
+                    topLeftAnswer: currentQuestion ? currentQuestion.topLeftAnswer.value : "",
+                    topRightAnswer: currentQuestion ? currentQuestion.topRightAnswer.value : "",
+                    bottomLeftAnswer: currentQuestion ? currentQuestion?.bottomLeftAnswer.value : "",
+                    bottomRightAnswer: currentQuestion ? currentQuestion?.bottomRightAnswer.value : "",
                   }}
                   languageProp={currentQuestion?.question.language}
                 />

@@ -1,26 +1,37 @@
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import { Grid, Button, Typography, Box } from "@mui/material";
 import AddBoxRoundedIcon from "@mui/icons-material/AddBoxRounded";
 import Popover from "@mui/material/Popover";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { newQuestionTypes } from "../../../common/types";
+import { NewQuestionType, Quiz, ValidationStatus } from "../../../common/types";
+import { CurrentOperationInQuestion, QuestionParams } from "../CreateQuiz";
+
+interface SidePanelProps {
+  setCurrentQuiz: Dispatch<SetStateAction<Quiz>>,
+  setQuestionParams: Dispatch<SetStateAction<QuestionParams>>,
+  createNewQuizQuestion: (key: number) => any, //TODO should be Question
+  validate: () => ValidationStatus,
+  questionParams: QuestionParams,
+  currentQuiz: Quiz,
+}
 
 //Represents the panel on the left, which contains the questions currently created in the quiz
-const SidePanel = (props) => {
+const SidePanel = (props: SidePanelProps) => {
   const {
-    setCurrentQuestions,
+    setCurrentQuiz,
     setQuestionParams,
     questionParams,
     createNewQuizQuestion,
-    validate,
+    currentQuiz,
+    validate
   } = props;
   //questions displayed in the panel
-  const currentQuestions = props.currentQuestions.questions;
+  const currentQuestions = currentQuiz.questions;
 
   //state used to define where the popover, which contains the new question type options, should get displayed (around which tag)
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 
   //derived states
   //open says whether the popover is displayed or not
@@ -28,21 +39,21 @@ const SidePanel = (props) => {
   const id = open ? "simple-popover" : undefined;
 
   //handles popover which displays which type of new question the user wants to create
-  const handlePopoverChange = (event) => {
+  const handlePopoverChange = (event: React.MouseEvent<SVGSVGElement>): void => {
     open = !open;
     if (open) {
-      setAnchorEl(event.currentTarget);
+      setAnchorEl(event.currentTarget as any);
     } else {
       setAnchorEl(null);
     }
   };
 
   //close the popover
-  const handlePopoverClose = () => setAnchorEl(null);
+  const handlePopoverClose = (): void => setAnchorEl(null);
 
   //default settings of the notifications, stored in const to prevent code repeating, using spred operator instead
   const toastSettings = {
-    position: "top-right",
+    position: "top-right" as const,
     autoClose: 7000,
     hideProgressBar: false,
     closeOnClick: true,
@@ -53,7 +64,7 @@ const SidePanel = (props) => {
 
   //defines what should happen if user creates new question => create new empty question and
   //save the current one in QuestionCreator.js using the questionParams state
-  const handleNewQuestionClick = (event) => {
+  const handleNewQuestionClick = (event): void => {
     const status = validate();
     if (status !== "OK") {
       toast.warn(status, {
@@ -62,18 +73,18 @@ const SidePanel = (props) => {
     } else {
       handlePopoverClose();
       const newQuestion =
-        event.target.id === newQuestionTypes.QUIZ
+        event.target.id === NewQuestionType.QUIZ
           ? createNewQuizQuestion(
               currentQuestions[currentQuestions.length - 1].key + 1
             )
           : {
               key: currentQuestions[currentQuestions.length - 1].key + 1,
-              type: newQuestionTypes.TRUEFALSE,
+              type: NewQuestionType.TRUEFALSE,
               question: "",
               true: "",
               false: "",
             };
-      setCurrentQuestions((currentQuestions) => {
+      setCurrentQuiz((currentQuestions) => {
         return {
           ...currentQuestions,
           questions: [...currentQuestions.questions, newQuestion],
@@ -83,7 +94,7 @@ const SidePanel = (props) => {
         return {
           ...currQuestionParams,
           nextQuestion: newQuestion,
-          currentOperation: "SAVE",
+          currentOperation: CurrentOperationInQuestion.SAVE,
         };
       });
     }
@@ -91,7 +102,7 @@ const SidePanel = (props) => {
 
   //defines what happens if user clicks on other already existing question, change questionParams state, which triggers
   //the save operation of current question in QuestionCreator.js
-  const handleQuestionClick = (event) => {
+  const handleQuestionClick = (event): void => {
     const status = validate();
     if (
       questionParams.currentQuestion.key !== parseInt(event.currentTarget.id)
@@ -102,18 +113,20 @@ const SidePanel = (props) => {
         });
         return;
       }
+      //TODO rename type to questionType in createNewQuizQuestion
+      //@ts-ignore
       setQuestionParams((currQuestionParams) => {
         return {
           ...currQuestionParams,
           nextQuestion: currentQuestions[event.currentTarget.id - 1],
-          currentOperation: "SAVE",
+          currentOperation: CurrentOperationInQuestion.SAVE,
         };
       });
     }
   };
 
   //Gets triggered when user clicks on the trash icon in the question, the question then gets deleted
-  const handleDeleteQuestionIcon = (key) => {
+  const handleDeleteQuestionIcon = (key: number): void => {
     //user wants to delete current question and only one question is in the quiz:
     //notify user that there has to be at least one question in the quiz
     if (currentQuestions.length === 1) {
@@ -123,7 +136,7 @@ const SidePanel = (props) => {
       return;
     }
     //delete the question from the list
-    setCurrentQuestions((currQuiz) => {
+    setCurrentQuiz((currQuiz) => {
       const quiz = { ...currQuiz };
       const questions = [...quiz.questions];
       questions.splice(key - 1, 1);
@@ -140,6 +153,8 @@ const SidePanel = (props) => {
     });
     //user wants to delete current question and there are more questions in the quiz
     if (questionParams.currentQuestion.key === key) {
+      //TODO rename type to questionType in createNewQuizQuestion
+      //@ts-ignore
       setQuestionParams((currQuestionParams) => {
         return {
           ...currQuestionParams,
@@ -147,7 +162,7 @@ const SidePanel = (props) => {
             key < currentQuestions.length
               ? currentQuestions[key]
               : currentQuestions[key - 2],
-          currentOperation: "DELETE",
+          currentOperation: CurrentOperationInQuestion.DELETE,
         };
       });
     }
@@ -186,7 +201,8 @@ const SidePanel = (props) => {
               }}
             >
               <Box
-                id={question.key}
+                component={"div"}
+                id={question.key.toString()}
                 onClick={handleQuestionClick}
                 onMouseEnter={(event) =>
                   (event.currentTarget.style.cursor = "pointer")
@@ -207,7 +223,7 @@ const SidePanel = (props) => {
                 )}
               </Box>
               <DeleteIcon
-                color="neutral"
+                color="info"
                 onClick={() => handleDeleteQuestionIcon(question.key)}
                 onMouseEnter={(event) => {
                   event.currentTarget.style.backgroundColor = "#B2ADFD";
@@ -226,7 +242,8 @@ const SidePanel = (props) => {
         ))}
         <Grid item>
           <AddBoxRoundedIcon
-            color="neutral"
+            component={"svg"}
+            color="info"
             onMouseEnter={(event) =>
               (event.currentTarget.style.cursor = "pointer")
             }
@@ -237,7 +254,7 @@ const SidePanel = (props) => {
           />
         </Grid>
       </Grid>
-      {/* The popover for which is used the state. It's open operation is trigerred by clicking on + button in the side panel */}
+      {/* The popover for which the state is used. It's open operation is trigerred by clicking on + button in the side panel */}
       <Popover
         id={id}
         open={open}
@@ -261,7 +278,7 @@ const SidePanel = (props) => {
         >
           <Grid item xs={12}>
             <Button
-              id={newQuestionTypes.QUIZ}
+              id={NewQuestionType.QUIZ}
               color="primary"
               variant="contained"
               sx={{ textTransform: "none", width: "100%" }}
@@ -272,7 +289,7 @@ const SidePanel = (props) => {
           </Grid>
           <Grid item xs={12}>
             <Button
-              id={newQuestionTypes.TRUEFALSE}
+              id={NewQuestionType.TRUEFALSE}
               color="primary"
               variant="contained"
               sx={{ textTransform: "none", width: "100%" }}

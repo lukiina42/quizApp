@@ -13,7 +13,7 @@ export interface Question {
   name: string;
   question: {
     value: string;
-    language: string;
+    language: LanguageType;
   };
   topLeftAnswer: Answer;
   topRightAnswer: Answer;
@@ -29,18 +29,18 @@ export interface Quiz {
 }
 
 //defining enum like structure for question types
-export const newQuestionTypes = {
-  QUIZ: "QUIZ",
-  TRUEFALSE: "TRUEFALSE",
+export enum NewQuestionType {
+  QUIZ = "QUIZ",
+  TRUEFALSE = "TRUEFALSE",
 };
 
 //defining enum like structure for language types possible in question
-export const languageTypes = {
-  C: "text/x-csrc",
-  CPLUSPLUS: "text/x-c++src",
-  JAVA: "text/x-java",
-  PYTHON: "text/x-python",
-  PLAINTEXT: "PLAINTEXT",
+export enum LanguageType {
+  C = "text/x-csrc",
+  CPLUSPLUS = "text/x-c++src",
+  JAVA = "text/x-java",
+  PYTHON = "text/x-python",
+  PLAINTEXT = "PLAINTEXT",
 };
 
 //Initial state of the answers true/false parameter.
@@ -75,4 +75,10 @@ export interface UserInterface {
   id: number;
   email: string;
   status: string;
+}
+
+export enum ValidationStatus{
+  OK = "OK",
+  TWOANSWERS = "At least 2 answers should be filled",
+  NAMEOFQUESTION = "Name of the question is required"
 }

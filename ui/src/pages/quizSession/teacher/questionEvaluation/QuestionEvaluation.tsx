@@ -12,7 +12,7 @@ import {
 
 import "./index.css";
 import { QuestionEvaluationType } from "../StartQuiz";
-import { Question, languageTypes } from "../../../../common/types";
+import { Question, LanguageType } from "../../../../common/types";
 import CustomCodeEditor from "../../../quiz/questionParameters/codeEditor/CustomCodeEditor";
 import CustomTooltip from "./CustomTooltip";
 import AnswersEvaluation from "./answersEvaluation/AnswersEvaluation";
@@ -81,9 +81,8 @@ const QuestionEvaluation = ({
         </div>
         <div className="editorWrapper">
           <CustomCodeEditor
-            language={currentQuestion?.question.language}
-            value={currentQuestion?.question.value}
-            languageTypes={languageTypes}
+            language={currentQuestion ? currentQuestion.question.language : LanguageType.C}
+            value={currentQuestion ? currentQuestion.question.value : ""}
           />
         </div>
         <div className="answersWrapper">

@@ -1,4 +1,9 @@
 import { createTheme } from "@mui/material/styles";
+import { Theme } from '@mui/material/styles';
+
+declare module '@mui/styles/defaultTheme' {
+  interface DefaultTheme extends Theme {}
+}
 
 //defines colors used in the app. Those are then used using theme.palette.*
 const theme = createTheme({
@@ -6,26 +11,27 @@ const theme = createTheme({
   palette: {
     primary: {
       main: "#7D93FF",
-      darker: "#053e85",
+      dark: "#053e85",
       contrastText: "#fff",
     },
     secondary: {
       main: "#6AE2A4",
-      darker: "#52D591",
+      dark: "#52D591",
       contrastText: "#fff",
     },
-    neutral: {
+    info: {
       main: "#64748B",
-      darker: "#000000",
+      dark: "#000000",
       contrastText: "#fff",
     },
+    //@ts-ignore
     backgroundSidePanel: {
       main: "#E0DFF0",
       contrastText: "#fff",
     },
     error: {
       main: "#FF0044",
-      darker: "#FF0044",
+      dark: "#FF0044",
       contrastText: "#fff",
     },
     black: {
