@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import Answers from "../../../quiz/questionParameters/answers/Answers";
 import { Button, Grid } from "@mui/material";
 import { AnswersCorrect, AnswerValues } from "../../../../common/types";
@@ -6,7 +6,7 @@ import { AnswersCorrect, AnswerValues } from "../../../../common/types";
 interface AnswerToQuestionProps {
   currentAnswers: AnswerValues | null;
   answersCorrect: AnswersCorrect;
-  setAnswersCorrect(props: AnswersCorrect): void;
+  setAnswersCorrect: Dispatch<SetStateAction<AnswersCorrect>>;
   handleSendAnswersButton(): void;
 }
 
@@ -31,7 +31,7 @@ function AnswerToQuestion({
       <div className="answersDiv">
         <Answers
           disabled
-          answersValues={currentAnswers}
+          answersValues={currentAnswers ? currentAnswers : undefined}
           answersCorrect={answersCorrect}
           setAnswersCorrect={setAnswersCorrect}
         />

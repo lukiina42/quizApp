@@ -1,9 +1,11 @@
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import { TextField, Grid, Tooltip, InputAdornment } from "@mui/material";
 import { tooltipClasses } from "@mui/material";
 import { styled, makeStyles } from "@mui/styles";
+import { AnswersCorrect, AnswerValues, NewQuestionType } from "../../../../common/types";
+import { QuestionParams } from "../../CreateQuiz";
 
 //Custom styling of the tooltip, which gets displayed, when user hoovers over thumbs up and down icons in the answers field
 const CustomTooltip = styled(({ className, ...props }) => (
@@ -38,17 +40,26 @@ const useStyles = makeStyles(() => ({
 const textFieldStaticProps = {
   multiline: true,
   maxRows: 3,
-  size: "small",
+  size: "small" as any,
+  variant: "outlined" as any
 };
+
+interface AnswersProps {
+  setAnswersCorrect: Dispatch<SetStateAction<AnswersCorrect>> | undefined,
+  handleAnswerValueChange?: (event: any) => void,
+  questionParams?: QuestionParams,
+  answersCorrect: AnswersCorrect | undefined,
+  answersValues: AnswerValues | undefined,
+  disabled?: boolean
+}
 
 //Displays the answers in current question. The teacher can write into them when he is editting the question, but they are disabled
 // and only displayed when teacher is presenting the quiz to students
-const Answers = (props) => {
+const Answers = (props: AnswersProps) => {
   //Styling classes
   const classes = useStyles();
 
   const {
-    newQuestionTypes,
     setAnswersCorrect,
     questionParams,
     answersCorrect,
@@ -75,8 +86,8 @@ const Answers = (props) => {
     return (
       <InputAdornment position="end">
         <CustomTooltip
-          className={classes.tooltip}
           title={
+            //@ts-ignore
             answersCorrect[id]
               ? "Thumbs up: correct answer Click to toggle"
               : "Thumbs down: incorrect answer Click to toggle"
@@ -84,12 +95,16 @@ const Answers = (props) => {
           placement="top"
           arrow
         >
-          {answersCorrect[id] ? (
+          {
+          //@ts-ignore
+          answersCorrect[id] ? (
             <ThumbUpIcon
               color="secondary"
               onClick={() =>
+                //@ts-ignore
                 setAnswersCorrect({
                   ...answersCorrect,
+                  //@ts-ignore
                   [id]: !answersCorrect[id],
                 })
               }
@@ -104,8 +119,10 @@ const Answers = (props) => {
             <ThumbDownIcon
               color="error"
               onClick={() =>
+                //@ts-ignore
                 setAnswersCorrect({
                   ...answersCorrect,
+                  //@ts-ignore
                   [id]: !answersCorrect[id],
                 })
               }
@@ -141,15 +158,15 @@ const Answers = (props) => {
             id={"topLeftAnswer"}
             //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
             onClick={
-              answersCorrect && disabled
+              (answersCorrect && disabled && setAnswersCorrect)
                 ? () =>
                     setAnswersCorrect({
                       ...answersCorrect,
                       TopLeft: !answersCorrect.TopLeft,
                     })
-                : null
+                : () => {}
             }
-            value={answersValues.topLeftAnswer}
+            value={answersValues?.topLeftAnswer}
             inputProps={{ style: { textAlign: "center" } }}
             sx={{ backgroundColor: "#66A4FF" }}
             InputProps={
@@ -169,15 +186,15 @@ const Answers = (props) => {
             className={classes.answer}
             //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
             onClick={
-              answersCorrect && disabled
+              (answersCorrect && disabled && setAnswersCorrect)
                 ? () =>
                     setAnswersCorrect({
                       ...answersCorrect,
                       TopRight: !answersCorrect.TopRight,
                     })
-                : null
+                : () => {}
             }
-            value={answersValues.topRightAnswer}
+            value={answersValues?.topRightAnswer}
             inputProps={{ style: { textAlign: "center" } }}
             sx={{ backgroundColor: "#B456EB" }}
             InputProps={
@@ -190,7 +207,7 @@ const Answers = (props) => {
           />
         </Grid>
         {(disabled ||
-          questionParams.currentQuestion.type === newQuestionTypes.QUIZ) && (
+          questionParams?.currentQuestion.type === NewQuestionType.QUIZ) && (
           <>
             <Grid item xs={6}>
               <TextField
@@ -200,15 +217,15 @@ const Answers = (props) => {
                 className={classes.answer}
                 //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
                 onClick={
-                  answersCorrect && disabled
+                  (answersCorrect && disabled && setAnswersCorrect)
                     ? () =>
                         setAnswersCorrect({
                           ...answersCorrect,
                           BottomLeft: !answersCorrect.BottomLeft,
                         })
-                    : null
+                    : () => {}
                 }
-                value={answersValues.bottomLeftAnswer}
+                value={answersValues?.bottomLeftAnswer}
                 inputProps={{ style: { textAlign: "center" } }}
                 sx={{ backgroundColor: "#EB9B56" }}
                 InputProps={
@@ -228,22 +245,22 @@ const Answers = (props) => {
                 className={classes.answer}
                 //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
                 onClick={
-                  answersCorrect && disabled
+                  (answersCorrect && disabled && setAnswersCorrect)
                     ? () =>
                         setAnswersCorrect({
                           ...answersCorrect,
                           BottomRight: !answersCorrect.BottomRight,
                         })
-                    : null
+                    : () => {}
                 }
-                value={answersValues.bottomRightAnswer}
+                value={answersValues?.bottomRightAnswer}
                 inputProps={{ style: { textAlign: "center" } }}
                 sx={{ backgroundColor: "#FFFF99" }}
                 InputProps={
                   disabled && !answersCorrect
                     ? {}
                     : {
-                        endAdornment: <AdornmentCustom id="BottomRight" />,
+                        endAdornment: <AdornmentCustom id="BottomRight"/>,
                       }
                 }
               />

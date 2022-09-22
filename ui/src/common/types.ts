@@ -29,9 +29,9 @@ export interface Quiz {
 }
 
 //defining enum like structure for question types
-export const newQuestionTypes = {
-  QUIZ: "QUIZ",
-  TRUEFALSE: "TRUEFALSE",
+export enum NewQuestionType {
+  QUIZ = "QUIZ",
+  TRUEFALSE = "TRUEFALSE",
 };
 
 //defining enum like structure for language types possible in question

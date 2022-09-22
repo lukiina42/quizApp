@@ -3,7 +3,7 @@ import { Grid } from "@mui/material";
 import SidePanel from "./sidePanel/SidePanel";
 import QuestionCreator from "./questionParameters/QuestionCreator";
 import { ToastContainer } from "react-toastify";
-import { newQuestionTypes, LanguageType, AnswerValues, AnswersCorrect, ValidationStatus } from "../../common/types";
+import { NewQuestionType, LanguageType, AnswerValues, AnswersCorrect, ValidationStatus } from "../../common/types";
 import { Quiz, Question } from "../../common/types";
 
 interface CurrentAndNextQuestion {
@@ -34,7 +34,7 @@ const CreateQuiz = (props) => {
   const createNewQuizQuestion = (key: number) => {
     return {
       key: key,
-      type: newQuestionTypes.QUIZ,
+      type: NewQuestionType.QUIZ,
       name: "",
       question: {
         value: "",
@@ -175,11 +175,11 @@ const CreateQuiz = (props) => {
     currentOperation: CurrentOperationInQuestion.SAVE,
     currentQuestion: {
       key: 1,
-      type: newQuestionTypes.QUIZ,
+      type: NewQuestionType.QUIZ,
     },
     nextQuestion: {
       key: 1,
-      type: newQuestionTypes.QUIZ,
+      type: NewQuestionType.QUIZ,
     },
   });
 

@@ -11,7 +11,7 @@ import Answers from "./answers/Answers";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { newQuestionTypes, LanguageType, Quiz, ValidationStatus, AnswersCorrect, AnswerValues, Question, UserInterface } from "../../../common/types";
+import { NewQuestionType, LanguageType, Quiz, ValidationStatus, AnswersCorrect, AnswerValues, Question, UserInterface } from "../../../common/types";
 import { useUser } from "../../../context/UserContext";
 import { QuestionParams } from "../CreateQuiz";
 
@@ -98,7 +98,7 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
   //Saves the question with the current values -> states or values of text fields are used
   const saveTheQuestion = (finalSave: boolean, questionParams: QuestionParams, answersCorrect: AnswersCorrect): void => {
     const nameElement = document.getElementById("name") as HTMLInputElement | null
-    const newQuestion = questionParams.currentQuestion.type === newQuestionTypes.QUIZ //TODO add Question type here to newQuestion
+    const newQuestion = questionParams.currentQuestion.type === NewQuestionType.QUIZ //TODO add Question type here to newQuestion
         ? {
             key: questionParams.currentQuestion.key,
             type: questionParams.currentQuestion.type,
@@ -439,7 +439,6 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
           sx={{ minHeight: "225px", display: "flex", alignItems: "center" }}
         >
           <Answers
-            newQuestionTypes={newQuestionTypes}
             setAnswersCorrect={setAnswersCorrect}
             answersValues={answersValues}
             answersCorrect={answersCorrect}

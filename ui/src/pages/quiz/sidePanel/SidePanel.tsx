@@ -5,7 +5,7 @@ import Popover from "@mui/material/Popover";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { newQuestionTypes, Quiz, ValidationStatus } from "../../../common/types";
+import { NewQuestionType, Quiz, ValidationStatus } from "../../../common/types";
 import { CurrentOperationInQuestion, QuestionParams } from "../CreateQuiz";
 
 interface SidePanelProps {
@@ -73,13 +73,13 @@ const SidePanel = (props: SidePanelProps) => {
     } else {
       handlePopoverClose();
       const newQuestion =
-        event.target.id === newQuestionTypes.QUIZ
+        event.target.id === NewQuestionType.QUIZ
           ? createNewQuizQuestion(
               currentQuestions[currentQuestions.length - 1].key + 1
             )
           : {
               key: currentQuestions[currentQuestions.length - 1].key + 1,
-              type: newQuestionTypes.TRUEFALSE,
+              type: NewQuestionType.TRUEFALSE,
               question: "",
               true: "",
               false: "",
@@ -278,7 +278,7 @@ const SidePanel = (props: SidePanelProps) => {
         >
           <Grid item xs={12}>
             <Button
-              id={newQuestionTypes.QUIZ}
+              id={NewQuestionType.QUIZ}
               color="primary"
               variant="contained"
               sx={{ textTransform: "none", width: "100%" }}
@@ -289,7 +289,7 @@ const SidePanel = (props: SidePanelProps) => {
           </Grid>
           <Grid item xs={12}>
             <Button
-              id={newQuestionTypes.TRUEFALSE}
+              id={NewQuestionType.TRUEFALSE}
               color="primary"
               variant="contained"
               sx={{ textTransform: "none", width: "100%" }}
