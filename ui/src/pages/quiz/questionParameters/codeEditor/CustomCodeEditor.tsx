@@ -3,7 +3,7 @@ import "codemirror/lib/codemirror.css";
 import "codemirror/theme/material.css";
 import "codemirror/mode/clike/clike";
 import "codemirror/mode/python/python";
-import { Controlled as ControlledEditor } from "react-codemirror2";
+import { Controlled as ControlledEditor } from "react-codemirror2-react-17";
 import "./index.css";
 import { LanguageType } from "../../../../common/types";
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from "react";
-import { Box, Button, Grid, TextField, Typography } from "@mui/material";
+import { Box, Button, Grid, Typography } from "@mui/material";
 import SockJS from "sockjs-client";
 import { over } from "stompjs";
 import { useState } from "react";
@@ -147,10 +147,6 @@ const StartQuiz = (props) => {
   );
   //boolean telling whether current question is the last one
   const lastQuestion = currentQuizKey === quiz.questions.length;
-
-  useEffect(() => {
-    console.log(studentsAnsweredInfo)
-  }, [studentsAnsweredInfo])
 
   //when teacher opens connection with the server, create new session
   const onConnected = () => {
