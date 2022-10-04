@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>cz.cvut.kbss.ear</groupId>
+    <groupId>cz.quiz.app</groupId>
     <artifactId>api</artifactId>
     <version>0.0.1</version>
     <name>Quiz app for formative assessment in programming</name>
@@ -20,6 +20,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.11</maven.compiler.source>
         <maven.compiler.target>1.11</maven.compiler.target>
+        <maven.compiler.release>11</maven.compiler.release>
 
         <org.eclipse.persistence.version>2.7.7</org.eclipse.persistence.version>
     </properties>
@@ -131,6 +132,7 @@
     </dependencies>
 
     <build>
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <!-- Allows easy JAR and WAR packaging with dependencies -->
             <plugin>
@@ -188,17 +190,17 @@
     <developers>
         <developer>
             <name>Lukas Vala</name>
-            <email>valaluk2@fel.cvut.cz</email>
-            <organization>Czech Technical University in Prague
+            <email>lukas.vala25@gmail.com</email>
+            <organization>Personal project
             </organization>
-            <organizationUrl>fel.cvut.cz</organizationUrl>
+            <organizationUrl>lukasvala.cz</organizationUrl>
             <roles>
             </roles>
         </developer>
     </developers>
 
     <scm>
-        <connection>scm:git:https://gitlab.fel.cvut.cz/valaluk2/thesisquizapp</connection>
+        <connection>scm:git:https://github.com/lukiina42/quizApp</connection>
     </scm>
 
 </project>

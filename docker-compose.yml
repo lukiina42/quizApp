@@ -1,0 +1,35 @@
+version: '3.1'
+services:
+  api:
+    container_name: quizappapi
+    build: api
+    environment:
+      - POSTGRES_DB=bakalarka
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - spring-postgres
+  db:
+    image: postgres:alpine
+    ports:
+      - "5433:5432"
+    secrets:
+      - db-password
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - spring-postgres
+    environment:
+      - POSTGRES_DB=bakalarka
+      - POSTGRES_PASSWORD=2412
+    expose:
+      - 5433
+volumes:
+  db-data:
+secrets:
+  db-password:
+    file: db/password.txt
+networks:
+  spring-postgres:
