@@ -8,6 +8,7 @@ import { UserInterface } from "../../common/types";
 import { ToastContainer } from "react-toastify";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
+import { HashLoader } from "react-spinners";
 
 //box styling
 const useStyles = makeStyles((theme) => ({
@@ -27,6 +28,8 @@ const LoginForm = () => {
   //Current user, when the user comes to login page, he is usually not logged in, so user is at the initial state,
   // but after typing correct credentials, current user is changed and the user is moved to home page
   const currentUser = useUser();
+
+  const [isLoading, setIsLoading] = useState(false)
 
   //initial login data
   const emptyLoginData = {
@@ -86,6 +89,7 @@ const LoginForm = () => {
       email: loginData.username,
       password: loginData.password,
     };
+    setIsLoading(true)
     fetch("http://localhost:8080/betterKahoot/users/login", {
       method: "POST",
       headers: {
@@ -100,7 +104,8 @@ const LoginForm = () => {
         return response.json();
       })
       .then((responseData) => loginUser(responseData))
-      .catch((error) => console.log(error));
+      .catch((error) => console.log(error))
+      .finally(() => setIsLoading(false));
   }
 
   return (
@@ -151,12 +156,16 @@ const LoginForm = () => {
               />
             </Grid>
             <Grid item xs={3}>
+            {isLoading ? 
+              <HashLoader loading={true} size={50} color={"#7D93FF"} />
+              : 
               <Button color="primary" variant="contained" type="submit">
                 Submit
               </Button>
+            }
             </Grid>
             <Grid item xs={3}>
-              <Link to="registration">Don't have an account yet?</Link>
+                {!isLoading &&<Link to="registration">Don't have an account yet?</Link> }
             </Grid>
           </Grid>
         </form>

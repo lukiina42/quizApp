@@ -16,6 +16,8 @@ import QuestionCreator from "../../quiz/questionParameters/QuestionCreator";
 import QuestionEvaluation from "./questionEvaluation/QuestionEvaluation";
 import StudentResults from "./studentResults/StudentResults";
 
+import { HashLoader } from "react-spinners";
+
 interface NewStudentMessageResponse {
   name: string;
 }
@@ -336,7 +338,7 @@ const StartQuiz = (props) => {
                   <Typography fontWeight={"bold"}>{sessionId}</Typography>
                 </>
               ) : (
-                <Typography>"Please wait..."</Typography>
+                <HashLoader loading={true} size={50} color={"#7D93FF"} />
               )}
             </Box>
           </Grid>

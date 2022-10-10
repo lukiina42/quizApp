@@ -15,6 +15,7 @@ import { NavLink } from "react-router-dom";
 
 import { AnchorType } from "../Home";
 import { Quiz } from "../../../common/types";
+import { HashLoader } from "react-spinners";
 
 interface LoggedUserHomeProps {
   quizes: Array<Quiz>;
@@ -24,6 +25,7 @@ interface LoggedUserHomeProps {
   anchorEl: AnchorType;
   open: boolean;
   handleOptionsOpen(event, id: number): void;
+  isLoading: boolean;
 }
 
 //The home for logged in user. It displays the current user's
@@ -36,6 +38,7 @@ export default function LoggedUserHome({
   anchorEl,
   open,
   handleOptionsOpen,
+  isLoading
 }: LoggedUserHomeProps) {
   return (
     <Grid
@@ -63,6 +66,13 @@ export default function LoggedUserHome({
           alignItems="center"
           justifyContent="center"
         >
+          {isLoading ? 
+          
+          <HashLoader loading={true} size={50} color={"#7D93FF"} style={{paddingTop:"20px"}}/> 
+          
+          :
+          
+          <>
           {quizes.length === 0 ? (
             <Typography fontWeight={"bold"}>
               You sadly don't have any created quizzes, create one using the
@@ -148,6 +158,8 @@ export default function LoggedUserHome({
               ))}
             </>
           )}
+          </>
+        }
         </Grid>
       </Grid>
     </Grid>

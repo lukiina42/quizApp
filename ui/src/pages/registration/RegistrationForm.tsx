@@ -5,6 +5,7 @@ import { makeStyles } from "@mui/styles";
 import { useUserUpdate, UserStatus } from "../../context/UserContext";
 import { UserInterface } from "../../common/types";
 import { useHistory } from "react-router-dom";
+import { HashLoader } from "react-spinners";
 
 //custom styling
 const useStyles = makeStyles((theme) => ({
@@ -29,6 +30,8 @@ const RegistrationForm = () => {
   //when user registers, move him to the home page
   const changeUser = useUserUpdate();
 
+  const [isLoading, setIsLoading] = useState(false)
+
   //determines which fields were touched
   const touchedInitial = {
     email: false,
@@ -52,7 +55,7 @@ const RegistrationForm = () => {
   const [errors, setErrors] = useState(initialData);
 
   //determines whether the string contains capital letter
-  function isUpper(str) {
+  function isUpper(str: string) {
     const pattern = new RegExp("^(?=.*[A-Z]).+$");
     return pattern.test(str);
   }
@@ -150,6 +153,7 @@ const RegistrationForm = () => {
       email: registrationData.email,
       password: registrationData.password,
     };
+    setIsLoading(true)
     fetch("http://localhost:8080/betterKahoot/users", {
       method: "POST",
       headers: {
@@ -173,11 +177,12 @@ const RegistrationForm = () => {
         changeUser(loggedUser);
         history.push("/");
       })
-      .catch((error) => console.log(error));
+      .catch((error) => console.log(error))
+      .finally(() => setIsLoading(false));
   }
 
   //Determines whether the email user typed is already in the database
-  function emailExists(email) {
+  function emailExists(email: string) {
     return fetch("http://localhost:8080/betterKahoot/users/" + email, {
       method: "GET",
       headers: {
@@ -252,22 +257,26 @@ const RegistrationForm = () => {
             />
           </Grid>
           <Grid item xs={3}>
-            <Button
-              color="primary"
-              variant="contained"
-              type="submit"
-              disabled={
-                JSON.stringify(errors) !== JSON.stringify(initialData) ||
-                !touched.email ||
-                !touched.password ||
-                !touched.passwordAgain
-              }
-            >
-              Submit
-            </Button>
+            {isLoading ? 
+              <HashLoader loading={true} size={50} color={"#7D93FF"} />
+              : 
+              <Button
+                color="primary"
+                variant="contained"
+                type="submit"
+                disabled={
+                  JSON.stringify(errors) !== JSON.stringify(initialData) ||
+                  !touched.email ||
+                  !touched.password ||
+                  !touched.passwordAgain
+                }
+              >
+                Submit
+              </Button>
+            }
           </Grid>
           <Grid item xs={3}>
-            <Link to="/login">Already have an account?</Link>
+            {!isLoading && <Link to="/login">Already have an account?</Link> }
           </Grid>
         </Grid>
       </form>

@@ -7,7 +7,7 @@
     <groupId>cz.cvut.kbss.ear</groupId>
     <artifactId>api</artifactId>
     <version>0.0.1</version>
-    <name>Bakalarska prace Lukas Vala</name>
+    <name>Quiz app for formative assessment in programming</name>
     <packaging>jar</packaging>
 
     <parent>
