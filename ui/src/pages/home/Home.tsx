@@ -16,6 +16,8 @@ const Home = () => {
   //The quizzes of logged in user, initialized to empty array and the is fetched from the server
   const [quizes, setQuizes] = useState<Array<Quiz>>([]);
 
+  const [isLoading, setIsLoading] = useState(false)
+
   //Current user from context
   const currentUser: UserInterface = useUser();
 
@@ -57,6 +59,7 @@ const Home = () => {
 
   //Fetches all of the quizzes of current user
   const fetchAllQuizzes = (id: number) => {
+    setIsLoading(true)
     fetch("http://localhost:8080/betterKahoot/quiz/" + id, {
       method: "GET",
       headers: {
@@ -72,7 +75,8 @@ const Home = () => {
       .then((quizes) => {
         setQuizes(quizes);
       })
-      .catch((error) => console.log(error));
+      .catch((error) => console.log(error))
+      .finally(() => setIsLoading(false));
   };
 
   //Deletes the quiz the user chose to delete by it's id
@@ -111,6 +115,7 @@ const Home = () => {
           handleDeleteQuiz={handleDeleteQuiz}
           open={open}
           handleOptionsOpen={handleOptionsOpen}
+          isLoading={isLoading}
         />
       ) : (
         <GuestHome />
