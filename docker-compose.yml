@@ -1,0 +1,24 @@
+version: '3.1'
+services:
+  api:
+    container_name: quizapp-api
+    build: api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - .docker-data/postgres:/var/lib/postgresql/data3
+    environment:
+      POSTGRES_PASSWORD: 2412
+      POSTGRES_USER: blabla
+      POSTGRES_DB: quizdb
+  ui:
+    container_name: quizapp-ui
+    build: ui
+    ports: 
+      - "3000:3000"
