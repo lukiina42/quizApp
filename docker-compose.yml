@@ -1,17 +1,12 @@
 version: '3.1'
 services:
   api:
-    container_name: quizappapi
+    container_name: quizapp-api
     build: api
     ports:
       - "8080:8080"
     depends_on:
       - db
-    environment:
-    - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/quizdb
-    - SPRING_DATASOURCE_USERNAME=blabla
-    - SPRING_DATASOURCE_PASSWORD=2412
-    - SPRING_JPA_HIBERNATE_DDL_AUTO=update
   db:
     image: postgres:15-alpine
     ports:
@@ -22,3 +17,8 @@ services:
       POSTGRES_PASSWORD: 2412
       POSTGRES_USER: blabla
       POSTGRES_DB: quizdb
+  ui:
+    container_name: quizapp-ui
+    build: ui
+    ports: 
+      - "3000:3000"

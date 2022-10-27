@@ -15,9 +15,6 @@ import java.util.List;
 @Entity
 // We can't name the table User, as it is a reserved table name in some dbs, including Postgres
 @Table(name = "USER_TABLE")
-@NamedQueries({
-    @NamedQuery(name = "User.findByEmail", query = "SELECT u FROM User u WHERE u.email = :email")
-})
 @Builder
 public class User extends AbstractEntity {
 
