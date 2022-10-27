@@ -8,7 +8,6 @@ COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
 COPY src src
-RUN ./mvnw package
 COPY target/*.jar app.jar
 
 #RUN STAGE - don't want all the files, so copy only JAR file here
