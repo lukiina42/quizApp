@@ -1,8 +1,5 @@
 FROM node:16.16.0-alpine
 
-# Create directory in container image for app code
-RUN mkdir -p /usr/src/app
-
 # set working directory
 WORKDIR /usr/src/app
 
@@ -10,13 +7,13 @@ WORKDIR /usr/src/app
 ENV PATH /usr/src/app/node_modules/.bin:$PATH
 
 # install app dependencies
-COPY package.json /usr/src/app
-COPY package-lock.json /usr/src/app
+COPY package.json ./
+COPY package-lock.json ./
 RUN npm install
 RUN npm install react-scripts@4.0.3 -g
 
 # add app
-COPY . /usr/src/app/
+COPY . ./
 
 # start app
 CMD ["npm", "start"]
