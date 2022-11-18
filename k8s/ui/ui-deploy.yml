@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quizapp-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quizapp-ui
+  template:
+    metadata:
+      labels:
+        app: quizapp-ui
+    spec:
+      containers:
+        - name: postgres
+          image: lukiina42/quizapp-ui
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              memory: "20Mi"
+              cpu: "20m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
