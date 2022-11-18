@@ -60,7 +60,7 @@ const Home = () => {
   //Fetches all of the quizzes of current user
   const fetchAllQuizzes = (id: number) => {
     setIsLoading(true)
-    fetch("http://localhost:8080/betterKahoot/quiz/" + id, {
+    fetch(process.env.REACT_APP_FETCH_HOST + "/betterKahoot/quiz/" + id, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -81,7 +81,7 @@ const Home = () => {
 
   //Deletes the quiz the user chose to delete by it's id
   const handleDeleteQuiz = () => {
-    fetch("http://localhost:8080/betterKahoot/quiz/" + anchorEl.id, {
+    fetch(process.env.REACT_APP_FETCH_HOST + "/betterKahoot/quiz/" + anchorEl.id, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

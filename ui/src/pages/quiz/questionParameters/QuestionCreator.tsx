@@ -278,7 +278,7 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
       return;
     }
     saveTheQuestion(true, questionParams, answersCorrect);
-    fetch("http://localhost:8080/betterKahoot/quiz/" + currentUser.id, {
+    fetch(process.env.REACT_APP_FETCH_HOST + "/betterKahoot/quiz/" + currentUser.id, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

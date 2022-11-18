@@ -90,7 +90,7 @@ const LoginForm = () => {
       password: loginData.password,
     };
     setIsLoading(true)
-    fetch("http://localhost:8080/betterKahoot/users/login", {
+    fetch(process.env.REACT_APP_FETCH_HOST + "/betterKahoot/users/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

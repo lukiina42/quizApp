@@ -154,7 +154,7 @@ const RegistrationForm = () => {
       password: registrationData.password,
     };
     setIsLoading(true)
-    fetch("http://localhost:8080/betterKahoot/users", {
+    fetch(process.env.REACT_APP_FETCH_HOST + "/betterKahoot/users", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -183,7 +183,7 @@ const RegistrationForm = () => {
 
   //Determines whether the email user typed is already in the database
   function emailExists(email: string) {
-    return fetch("http://localhost:8080/betterKahoot/users/" + email, {
+    return fetch(process.env.REACT_APP_FETCH_HOST + "/betterKahoot/users/" + email, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
