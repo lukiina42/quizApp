@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service # Create service
+metadata:
+  name: postgres-db # Sets the service name
+  labels:
+    app: postgres # Defines app to create service for
+spec:
+  type: ClusterIP # Sets the service type
+  ports:
+    - port: 5432 # Sets the port to run the postgres application
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    app: postgres

@@ -1,0 +1,15 @@
+# Create ConfigMap postgres-secret for the postgres app
+# Define default database name, user, and password
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-secret
+  labels:
+    app: quizapp-api
+data:
+  POSTGRES_PASSWORD: "2412"
+  POSTGRES_HOST: ${POSTGRES_DB_SERVICE_HOST} # For me the most interesting part, It looks for service "postgres-db" and takes its IP address :) 
+                                             # That ensures that api connects to the correct host
+  POSTGRES_USER: "blabla"
+  POSTGRES_DB: "quizdb"
+  POSTGRES_PORT: "5432"

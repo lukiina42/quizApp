@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quizapp-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quizapp-api
+  template:
+    metadata:
+      labels:
+        app: quizapp-api
+    spec:
+      containers:
+        - name: postgres
+          image: lukiina42/quizapp-api
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: api-secret # Using the ConfigMap
+          resources:
+            requests:
+              memory: "20Mi"
+              cpu: "20m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
