@@ -5,10 +5,11 @@ metadata:
   labels:
     app: quizapp-api # Defines app to create service for
 spec:
-  type: ClusterPort # Sets the service type
+  type: NodePort # Sets the service type
   ports:
     - port: 80
       targetPort: 8080
+      nodePort: 32222
       protocol: TCP
   selector:
     app: quizapp-api
