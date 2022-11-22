@@ -1,0 +1,9 @@
+# Define default host to send requests to
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ui-secret
+  labels:
+    app: quizapp-ui
+data:
+  REACT_APP_FETCH_HOST: ${QUIZAPP_API_SERVICE_HOST}
