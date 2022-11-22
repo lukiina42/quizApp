@@ -6,4 +6,4 @@ metadata:
   labels:
     app: quizapp-ui
 data:
-  REACT_APP_FETCH_HOST: ${QUIZAPP_API_SERVICE_HOST}
+  REACT_APP_FETCH_HOST: 'http://localhost:32222'
