@@ -14,8 +14,11 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: lukiina42/quizapp-ui
+          image: lukiina42/quizapp-ui-x86
           imagePullPolicy: "IfNotPresent"
+          envFrom:
+            - configMapRef:
+                name: ui-secret # Using the ConfigMap
           ports:
             - containerPort: 3000
           resources:
