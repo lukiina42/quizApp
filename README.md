@@ -9,7 +9,7 @@ After creating the quiz, teacher (signed in user) can start it and give others t
 
 ##
 
-Frontend of the app is written in React and TypeScript (Some JS files still remain, rewriting them to TypeScript is in progress), backend in Spring. <br> Whole app is deployed with Heroku on address https://murmuring-springs-61212.herokuapp.com/.
+Frontend of the app is written in React and TypeScript, backend in Spring. <br> Old version of the app is deployed with Heroku on address https://murmuring-springs-61212.herokuapp.com/.
 
 # Local app running - Docker, K8s and Helm
 In order to practice my Docker, K8s and Helm skills I gained at work, I wrote K8s and Docker manifests and Helm charts to enable the app to be run locally without any hustle.
