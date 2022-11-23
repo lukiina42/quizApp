@@ -1,0 +1,22 @@
+config:
+  postgresDb: "quizdb"
+  postgresUser: "blabla"
+  postgresHost: "${POSTGRES_QUIZAPP_DB_SERVICE_SERVICE_HOST}" # For me the most interesting part, It looks for service "postgres-db" and takes its IP address :) 
+                                             # That ensures that api connects to the correct host
+
+deploy:
+  replicas: 1
+  image: "lukiina42/quizapp-api-arm64"
+  imagePullPolicy: "IfNotPresent"
+  containerPort: 8080
+
+
+service:
+  type: NodePort
+  port: 80
+  targetPort: 8080
+  nodePort: 32222
+  protocol: TCP
+
+labels:
+  app: quizapp-api

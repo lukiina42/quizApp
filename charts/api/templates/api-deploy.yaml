@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: quizapp-api
+  name: {{ .Release.Name }}-{{ .Chart.Name }}-deploy
 spec:
-  replicas: 1
+  replicas: {{ .Values.deploy.replicas }}
   selector:
     matchLabels:
-      app: quizapp-api
+      app: {{ .Values.labels.app }}
   template:
     metadata:
       labels:
-        app: quizapp-api
+        app: {{ .Values.labels.app }}
     spec:
       containers:
-        - name: postgres
-          image: lukiina42/quizapp-api
-          imagePullPolicy: "IfNotPresent"
+        - name: {{ .Values.labels.app }}
+          image: {{ .Values.deploy.image }}
+          imagePullPolicy: {{ .Values.deploy.imagePullPolicy }}
           ports:
-            - containerPort: 8080
+            - containerPort: {{ .Values.deploy.containerPort }}
           envFrom:
             - configMapRef:
-                name: api-secret # Using the ConfigMap
+                name: {{ .Release.Name }}-{{ .Chart.Name }}-config # Using the ConfigMap
           resources:
             requests:
               memory: "20Mi"

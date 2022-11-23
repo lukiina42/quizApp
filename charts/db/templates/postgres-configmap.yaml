@@ -4,11 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-{{ .Chart.Name }}-config
-  labels:
-    app: {{ .Values.labels.app }}
 data:
-  POSTGRES_HOST: "${POSTGRES_QUIZAPP_DB_SERVICE_SERVICE_HOST}"
-  POSTGRES_PASSWORD: "2412"
+  POSTGRES_PASSWORD: {{ .Values.config.postgresPassword }}
   POSTGRES_USER: {{ .Values.config.postgresUser }}
   POSTGRES_DB: {{ .Values.config.postgresDb }}
-  POSTGRES_PORT: "5432"

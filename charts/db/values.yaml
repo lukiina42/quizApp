@@ -1,0 +1,33 @@
+config:
+  postgresPassword: \"2412\" #this was considered as a number by helm and was causing errors before escaping quotes
+  postgresDb: "quizdb"
+  postgresUser: "blabla"
+
+pv:
+  storageCapacity: 128Mi
+  storageClassName: manual
+  accessModes: ReadWriteMany
+  hostPath: /data/postgresql
+
+pvc:
+  storageResources: 128Mi
+  storageClassName: manual
+  accessModes: ReadWriteMany
+
+deploy:
+  containerName: postgres
+  image: postgres:15-alpine
+  imagePullPolicy: IfNotPresent
+  containerPort: 5432
+  mountPath: /var/lib/postgresql/data
+  mountName: postgresdata
+  replicas: 1
+
+service:
+  type: ClusterIP
+  port: 5432
+  targetPort: 5432
+  protocol: TCP
+
+labels:
+  app: postgres

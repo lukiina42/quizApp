@@ -1,15 +1,14 @@
 apiVersion: v1
 kind: Service # Create service
 metadata:
-  name: {{ .Release.Name }}-{{ .Chart.Name }}-service # Sets the service name
+  name: postgres-quizapp-db-service # Sets the service name
   labels:
     app: {{ .Values.labels.app }} # Defines app to create service for
 spec:
   type: {{ .Values.service.type }} # Sets the service type
   ports:
-    - port: {{ .Values.service.port }}
+    - port: {{ .Values.service.port }} # Sets the port to run the postgres application
       targetPort: {{ .Values.service.targetPort }}
-      nodePort: {{ .Values.service.nodePort }}
       protocol: {{ .Values.service.protocol }}
   selector:
     app: {{ .Values.labels.app }}
