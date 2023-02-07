@@ -45,7 +45,7 @@ const textFieldStaticProps = {
 };
 
 interface AnswersProps {
-  setAnswersCorrect: Dispatch<SetStateAction<AnswersCorrect>> | undefined,
+  setAnswersCorrect?: Dispatch<SetStateAction<AnswersCorrect>> | undefined,
   handleAnswerValueChange?: (event: any) => void,
   questionParams?: QuestionParams,
   answersCorrect: AnswersCorrect | undefined,

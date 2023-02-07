@@ -12,7 +12,7 @@ import { Prompt } from "react-router";
 import { useHistory } from "react-router-dom";
 
 import { Quiz, Question } from "../../../common/types";
-import QuestionCreator from "../../quiz/questionParameters/QuestionCreator";
+import QuestionDisplay from "./questionDisplay/QuestionDisplay"
 import QuestionEvaluation from "./questionEvaluation/QuestionEvaluation";
 import StudentResults from "./studentResults/StudentResults";
 
@@ -395,7 +395,7 @@ const StartQuiz = (props) => {
               sx={{ width: "100%", height: "100%" }}
             >
               <Grid item xs={11} sx={{ width: "100%" }}>
-                <QuestionCreator
+                <QuestionDisplay
                   disabled
                   questionName={currentQuestion?.name}
                   codeTextProp={currentQuestion?.question.value}

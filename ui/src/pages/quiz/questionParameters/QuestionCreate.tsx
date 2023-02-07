@@ -62,12 +62,10 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
     setAnswersValues,
     handleAnswerValueChange,
     validate,
-    disabled,
-    questionName,
     codeTextProp,
     languageProp,
   } = props;
-  const currentQuestions = !disabled ? currentQuiz?.questions : null;
+  const currentQuestions = currentQuiz?.questions;
 
   //User whose id is sent with the request to save the quiz
   const currentUser: UserInterface = useUser();
@@ -76,14 +74,14 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
   let finalQuestions: Question[] = []; //TODO rename to Question
 
   //need to set the value of name text field in the question if the is not updating the quiz (which means he is presenting it)
-  const nameDynamicValue = disabled ? { value: questionName } : {};
+  const nameDynamicValue = {};
 
   //Handles the code text or the plain text, depends on current language
-  const [codeText, setCodeText] = useState<string | undefined>(disabled ? codeTextProp : "");
+  const [codeText, setCodeText] = useState<string | undefined>("");
 
   //Holds current language in which user types the question
   const [language, setLanguage] = useState<LanguageType | undefined>(
-    disabled ? languageProp : LanguageType.C
+    LanguageType.C
   );
 
   //history used to move user to the home page, when he saves the quiz or exits
@@ -153,20 +151,14 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
   };
 
   useEffect(() => {
-    if (!disabled) {
-      return;
-    }
     setLanguage(languageProp);
     setCodeText(codeTextProp);
-  }, [languageProp, codeTextProp, disabled]);
+  }, [languageProp, codeTextProp]);
 
   //Executed only on first render. If disabled is true, it means that the question is not being editted,
   //only displayed, so we don't need to set the states
   useEffect(() => {
     //if teacher is presenting the quiz in front of students, this useEffect is not needed
-    if (disabled) {
-      return;
-    }
     if(setAnswersCorrect && setAnswersValues && currentQuestions && questionParams){
       let questionName = document.getElementById("name") as HTMLInputElement | null
       if(questionName){
@@ -194,9 +186,6 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
   //and then set to next question
   useEffect(() => {
     //don't want to save anything if teacher is presenting
-    if (disabled) {
-      return;
-    }
     if(setAnswersCorrect && setAnswersValues && currentQuestions && questionParams && setQuestionParams && answersCorrect){
     //If next and current question are different, it means that current question should be saved.
     //After the question is saved to the state currentQuestions, current question is set to next
@@ -339,7 +328,6 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
             fullWidth
             placeholder="Question name"
             className={classes.textField}
-            disabled={disabled}
           />
         </Grid>
         <Grid
@@ -347,16 +335,14 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
           xs
           width={"80%"}
           sx={
-            disabled
-              ? { maxHeight: "340px" }
-              : {
-                  minHeight:
-                    language === LanguageType.PLAINTEXT ? "210px" : "326px",
-                }
+            {
+              minHeight:
+                language === LanguageType.PLAINTEXT ? "210px" : "326px",
+            }
           }
         >
           <Grid container direction={"row"} spacing={0} sx={{ height: "100%" }}>
-            <Grid item xs={disabled ? 12 : 10}>
+            <Grid item xs={10}>
               {language === LanguageType.PLAINTEXT ? (
                 <TextField
                   id="theQuestion"
@@ -367,21 +353,17 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
                   placeholder="Write your question here"
                   fullWidth
                   value={codeText}
-                  onChange={
-                    !disabled ? handleQuestionPlainTextChange : () => {}
-                  }
+                  onChange={handleQuestionPlainTextChange}
                   className={classes.textField}
-                  disabled={disabled}
                 />
               ) : (
                 <Editor
                   language={language ? language : LanguageType.C}
                   value={codeText ? codeText : ""}
-                  onChange={(!disabled && setCodeText) ? setCodeText : () => {}}
+                  onChange={setCodeText}
                 />
               )}
             </Grid>
-            {!disabled && (
               <Grid
                 item
                 xs={2}
@@ -429,7 +411,6 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
                   </RadioGroup>
                 </FormControl>
               </Grid>
-            )}
           </Grid>
         </Grid>
         <Grid
@@ -444,10 +425,8 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
             answersCorrect={answersCorrect}
             questionParams={questionParams}
             handleAnswerValueChange={handleAnswerValueChange}
-            disabled={disabled}
           />
         </Grid>
-        {!disabled && (
           <Grid item sx={{ width: "100%", height: "10%" }}>
             <Grid
               container
@@ -482,7 +461,6 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
               </Button>
             </Grid>
           </Grid>
-        )}
       </Grid>
     </>
   );

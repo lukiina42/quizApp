@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Grid } from "@mui/material";
 import SidePanel from "./sidePanel/SidePanel";
-import QuestionCreator from "./questionParameters/QuestionCreator";
+import QuestionCreator from "./questionParameters/QuestionCreate";
 import { ToastContainer } from "react-toastify";
 import { NewQuestionType, LanguageType, AnswerValues, AnswersCorrect, ValidationStatus } from "../../common/types";
 import { Quiz, Question } from "../../common/types";
