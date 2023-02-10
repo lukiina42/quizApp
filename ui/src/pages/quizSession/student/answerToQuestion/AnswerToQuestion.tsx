@@ -1,10 +1,10 @@
 import React, { Dispatch, SetStateAction } from "react";
 import Answers from "../../../quiz/questionParameters/answers/Answers";
 import { Button, Grid } from "@mui/material";
-import { AnswersCorrect, AnswerValues } from "../../../../common/types";
+import { AnswersCorrect } from "../../../../common/types";
 
 interface AnswerToQuestionProps {
-  currentAnswers: AnswerValues | null;
+  currentAnswers: any | null;
   answersCorrect: AnswersCorrect;
   setAnswersCorrect: Dispatch<SetStateAction<AnswersCorrect>>;
   handleSendAnswersButton(): void;
@@ -29,12 +29,12 @@ function AnswerToQuestion({
       }}
     >
       <div className="answersDiv">
-        <Answers
+        {/* <Answers
           disabled
           answersValues={currentAnswers ? currentAnswers : undefined}
           answersCorrect={answersCorrect}
           setAnswersCorrect={setAnswersCorrect}
-        />
+        /> */}
         <Button
           variant="contained"
           color="primary"

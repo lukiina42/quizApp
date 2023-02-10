@@ -2,7 +2,12 @@ import React, { Dispatch, SetStateAction } from "react";
 import { Grid, TextField } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import "react-toastify/dist/ReactToastify.css";
-import { LanguageType, Quiz, ValidationStatus, AnswersCorrect, AnswerValues } from "../../../../common/types";
+import {
+  LanguageType,
+  Quiz,
+  ValidationStatus,
+  AnswersCorrect,
+} from "../../../../common/types";
 import Answers from "../../../quiz/questionParameters/answers/Answers";
 import Editor from "../../../quiz/questionParameters/codeEditor/CustomCodeEditor";
 
@@ -18,39 +23,25 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 interface QuestionDisplayProps {
-  currentQuiz?: Quiz,
-  setCurrentQuiz?: Dispatch<SetStateAction<Quiz>>,
-  createNewQuizQuestion?: (key: number) => any, //TODO Question here
-  answersCorrect?: AnswersCorrect,
-  setAnswersCorrect?: Dispatch<SetStateAction<AnswersCorrect>>,
-  answersValues: AnswerValues,
-  setAnswersValues?: Dispatch<SetStateAction<AnswerValues>>,
-  handleAnswerValueChange?: (event) => void,
-  validate?: () => ValidationStatus,
-  disabled?: boolean,
-  questionName?: string,
-  codeTextProp?: string,
-  languageProp?: LanguageType
+  answersCorrect?: AnswersCorrect;
+  answersValues: any;
+  questionName?: string;
+  codeTextProp?: string;
+  languageProp?: LanguageType;
 }
 
 //Represents the right side of the page, where user sets parameters of the question
 const QuestionDisplay = (props: QuestionDisplayProps) => {
   const {
-    setCurrentQuiz,
-    currentQuiz,
     answersCorrect,
-    setAnswersCorrect,
     answersValues,
-    setAnswersValues,
-    handleAnswerValueChange,
-    validate,
     questionName,
     codeTextProp,
     languageProp,
   } = props;
 
   //need to set the value of name text field in the question if the is not updating the quiz (which means he is presenting it)
-  const nameDynamicValue = { value: questionName };;
+  const nameDynamicValue = { value: questionName };
 
   //Styling classes
   const classes = useStyles();
@@ -88,12 +79,7 @@ const QuestionDisplay = (props: QuestionDisplayProps) => {
             disabled
           />
         </Grid>
-        <Grid
-          item
-          xs
-          width={"80%"}
-          sx={ { maxHeight: "340px" } }
-        >
+        <Grid item xs width={"80%"} sx={{ maxHeight: "340px" }}>
           <Grid container direction={"row"} spacing={0} sx={{ height: "100%" }}>
             <Grid item xs={12}>
               {languageProp === LanguageType.PLAINTEXT ? (
@@ -110,10 +96,7 @@ const QuestionDisplay = (props: QuestionDisplayProps) => {
                   disabled
                 />
               ) : (
-                <Editor
-                  language={languageProp!}
-                  value={codeTextProp!}
-                />
+                <Editor language={languageProp!} value={codeTextProp!} />
               )}
             </Grid>
           </Grid>
@@ -124,11 +107,11 @@ const QuestionDisplay = (props: QuestionDisplayProps) => {
           width={"80%"}
           sx={{ minHeight: "225px", display: "flex", alignItems: "center" }}
         >
-          <Answers
+          {/* <Answers
             answersValues={answersValues}
             answersCorrect={answersCorrect}
             disabled
-          />
+          /> */}
         </Grid>
       </Grid>
     </>

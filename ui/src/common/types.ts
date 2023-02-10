@@ -1,7 +1,8 @@
 //this components defines common types, which are used across the application - while creating quiz, testing a quiz etc.
 
-//One of the answers to the quiz question
+//one of the answers to the question
 interface Answer {
+  answerType: "QUIZ" | "TRUEFALSE";
   value: string;
   isCorrect: boolean;
 }
@@ -32,7 +33,7 @@ export interface Quiz {
 export enum NewQuestionType {
   QUIZ = "QUIZ",
   TRUEFALSE = "TRUEFALSE",
-};
+}
 
 //defining enum like structure for language types possible in question
 export enum LanguageType {
@@ -41,7 +42,7 @@ export enum LanguageType {
   JAVA = "text/x-java",
   PYTHON = "text/x-python",
   PLAINTEXT = "PLAINTEXT",
-};
+}
 
 //Initial state of the answers true/false parameter.
 //The user can change those values while creating quiz or while answering to the question in the session
@@ -63,12 +64,25 @@ export interface AnswersCorrect {
 }
 
 //Defines text values of the answers
-export interface AnswerValues {
-  topLeftAnswer: string;
-  topRightAnswer: string;
-  bottomLeftAnswer: string;
-  bottomRightAnswer: string;
+export interface QuizAnswers {
+  topLeftAnswer: Answer;
+  topRightAnswer: Answer;
+  bottomLeftAnswer: Answer;
+  bottomRightAnswer: Answer;
 }
+
+const initialQuizAnswer: Answer = {
+  answerType: "QUIZ",
+  value: "",
+  isCorrect: false,
+};
+
+export const initialQuizAnswers = {
+  topLeftAnswer: initialQuizAnswer,
+  topRightAnswer: initialQuizAnswer,
+  bottomLeftAnswer: initialQuizAnswer,
+  bottomRightAnswer: initialQuizAnswer,
+};
 
 //Defines user, who is currently logged in
 export interface UserInterface {
@@ -77,8 +91,8 @@ export interface UserInterface {
   status: string;
 }
 
-export enum ValidationStatus{
+export enum ValidationStatus {
   OK = "OK",
   TWOANSWERS = "At least 2 answers should be filled",
-  NAMEOFQUESTION = "Name of the question is required"
+  NAMEOFQUESTION = "Name of the question is required",
 }

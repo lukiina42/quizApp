@@ -7,7 +7,6 @@ import { ToastContainer } from "react-toastify";
 import { toast } from "react-toastify";
 import {
   Quiz,
-  AnswerValues,
   Question,
   answersCorrectInitialState,
 } from "../../../common/types";
@@ -95,7 +94,7 @@ const JoinQuiz = () => {
   //derived answers state -> is computed when quiz or currentQuestionKey change
   //it is set to null if user is not yet connected to session or the teacher
   //hasn't yet started the quiz with the button
-  const currentAnswers: AnswerValues | null =
+  const currentAnswers: any | null =
     quiz === null
       ? null
       : currentQuestionKey === 0

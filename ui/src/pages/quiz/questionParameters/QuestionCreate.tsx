@@ -17,12 +17,12 @@ import {
   Quiz,
   ValidationStatus,
   AnswersCorrect,
-  AnswerValues,
   Question,
   UserInterface,
+  QuizAnswers,
 } from "../../../common/types";
 import { useUser } from "../../../context/UserContext";
-import { QuestionParams } from "../CreateQuiz";
+import { QuestionData, QuestionParams } from "../CreateQuiz";
 
 const useStyles = makeStyles((theme) => ({
   bottomButtons: {
@@ -41,286 +41,34 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 interface QuestionCreatorProps {
-  setQuestionParams?: Dispatch<SetStateAction<QuestionParams>>;
-  questionParams?: QuestionParams;
-  currentQuiz?: Quiz;
-  setCurrentQuiz?: Dispatch<SetStateAction<Quiz>>;
+  currentQuestionData: QuestionData;
+  quizAnswers: QuizAnswers;
   createNewQuizQuestion?: (key: number) => any; //TODO Question here
-  answersCorrect?: AnswersCorrect;
-  setAnswersCorrect?: Dispatch<SetStateAction<AnswersCorrect>>;
-  answersValues: AnswerValues;
-  setAnswersValues?: Dispatch<SetStateAction<AnswerValues>>;
   handleAnswerValueChange?: (event) => void;
-  validate?: () => ValidationStatus;
-  questionName?: string;
-  codeText: string;
-  language: LanguageType;
+  handleAnswerCorrectChange: (key: string) => void;
   handleQuestionTextChange: (event) => void;
   handleQuestionTextChangeWithValue: (event) => void;
   handleLanguageChange: (event) => void;
   handleLanguageChangeWithValue: (language: LanguageType) => void;
+  handleQuestionNameChange: (event) => void;
+  handleSaveQuizButton: (event) => void;
+  handleExitButton: () => void;
 }
 
 //Represents the right side of the page, where user sets parameters of the question
 const QuestionCreator = (props: QuestionCreatorProps) => {
   const {
-    setCurrentQuiz,
-    currentQuiz,
-    questionParams,
-    setQuestionParams,
-    answersCorrect,
-    setAnswersCorrect,
-    answersValues,
-    setAnswersValues,
+    currentQuestionData,
+    quizAnswers,
     handleAnswerValueChange,
-    validate,
-    codeText,
-    language,
+    handleAnswerCorrectChange,
     handleQuestionTextChange,
     handleQuestionTextChangeWithValue,
+    handleQuestionNameChange,
     handleLanguageChange,
-    handleLanguageChangeWithValue,
+    handleSaveQuizButton,
+    handleExitButton,
   } = props;
-  const currentQuestions = currentQuiz?.questions;
-
-  //User whose id is sent with the request to save the quiz
-  const currentUser: UserInterface = useUser();
-
-  //this is going to be sent to API on save the quiz button click
-  let finalQuestions: Question[] = []; //TODO rename to Question
-
-  //need to set the value of name text field in the question if the is not updating the quiz (which means he is presenting it)
-  const nameDynamicValue = {};
-
-  //history used to move user to the home page, when he saves the quiz or exits
-  const history = useHistory();
-
-  //Saves the question with the current values -> states or values of text fields are used
-  const saveTheQuestion = (
-    finalSave: boolean,
-    questionParams: QuestionParams,
-    answersCorrect: AnswersCorrect
-  ): void => {
-    const nameElement = document.getElementById(
-      "name"
-    ) as HTMLInputElement | null;
-    const newQuestion =
-      questionParams.currentQuestion.type === NewQuestionType.QUIZ //TODO add Question type here to newQuestion
-        ? {
-            key: questionParams.currentQuestion.key,
-            type: questionParams.currentQuestion.type,
-            name: nameElement ? nameElement.value : "",
-            question: {
-              value: codeText,
-              language: language,
-            },
-            topLeftAnswer: {
-              value: answersValues.topLeftAnswer,
-              isCorrect: answersCorrect.TopLeft,
-            },
-            topRightAnswer: {
-              value: answersValues.topRightAnswer,
-              isCorrect: answersCorrect.TopRight,
-            },
-            bottomLeftAnswer: {
-              value: answersValues.bottomLeftAnswer,
-              isCorrect: answersCorrect.BottomLeft,
-            },
-            bottomRightAnswer: {
-              value: answersValues.bottomRightAnswer,
-              isCorrect: answersCorrect.BottomRight,
-            },
-          }
-        : {
-            // TODO true/false question
-            // key: questionParams.currentQuestion.key,
-            // type: questionParams.currentQuestion.type,
-            // question: document.getElementById('theQuestion').value,
-            // true: document.getElementById('TopLeft').value,
-            // false: document.getElementById('TopRight').value,
-          };
-    if (finalSave) {
-      //finalQuestions variable is sent to the server to be saved
-      finalQuestions = currentQuestions ? [...currentQuestions] : [];
-      if (questionParams) {
-        //TODO rename type to questionType
-        //@ts-ignore
-        finalQuestions[questionParams.currentQuestion.key - 1] = newQuestion;
-      }
-    }
-    if (setCurrentQuiz && questionParams) {
-      setCurrentQuiz((currentQuestions) => {
-        let questions = [...currentQuestions.questions];
-        //TODO rename type to questionType
-        //@ts-ignore
-        questions[questionParams.currentQuestion.key - 1] = newQuestion;
-        return { ...currentQuestions, questions: questions };
-      });
-    }
-  };
-
-  //Executed only on first render. If disabled is true, it means that the question is not being editted,
-  //only displayed, so we don't need to set the states
-  useEffect(() => {
-    //if teacher is presenting the quiz in front of students, this useEffect is not needed
-    if (
-      setAnswersCorrect &&
-      setAnswersValues &&
-      currentQuestions &&
-      questionParams
-    ) {
-      let questionName = document.getElementById(
-        "name"
-      ) as HTMLInputElement | null;
-      if (questionName) {
-        questionName.value =
-          currentQuestions[questionParams.nextQuestion.key - 1].name;
-        handleQuestionTextChangeWithValue(currentQuestions[0].question.value);
-        handleLanguageChangeWithValue(currentQuestions[0].question.language);
-        setAnswersValues({
-          topLeftAnswer: currentQuestions[0].topLeftAnswer.value,
-          topRightAnswer: currentQuestions[0].topRightAnswer.value,
-          bottomRightAnswer: currentQuestions[0].bottomRightAnswer.value,
-          bottomLeftAnswer: currentQuestions[0].bottomLeftAnswer.value,
-        });
-        setAnswersCorrect({
-          TopLeft: currentQuestions[0].topLeftAnswer.isCorrect,
-          TopRight: currentQuestions[0].topRightAnswer.isCorrect,
-          BottomRight: currentQuestions[0].bottomRightAnswer.isCorrect,
-          BottomLeft: currentQuestions[0].bottomLeftAnswer.isCorrect,
-        });
-      }
-    }
-  }, []);
-
-  //Observes the change of questionParams state. If the current and next question are different, the current question is saved
-  //and then set to next question
-  useEffect(() => {
-    //don't want to save anything if teacher is presenting
-    if (
-      setAnswersCorrect &&
-      setAnswersValues &&
-      currentQuestions &&
-      questionParams &&
-      setQuestionParams &&
-      answersCorrect
-    ) {
-      //If next and current question are different, it means that current question should be saved.
-      //After the question is saved to the state currentQuestions, current question is set to next
-      //question, which means no question should be saved.
-      if (
-        JSON.stringify(questionParams.currentQuestion) !==
-        JSON.stringify(questionParams.nextQuestion)
-      ) {
-        if (questionParams.currentOperation === "SAVE") {
-          saveTheQuestion(false, questionParams, answersCorrect);
-        }
-        let questionName = document.getElementById(
-          "name"
-        ) as HTMLInputElement | null;
-        if (questionName) {
-          //May not work
-          questionName.value =
-            currentQuestions[questionParams.nextQuestion.key - 1].name;
-          handleQuestionTextChangeWithValue(
-            currentQuestions[questionParams.nextQuestion.key - 1].question.value
-          );
-          handleLanguageChangeWithValue(
-            currentQuestions[questionParams.nextQuestion.key - 1].question
-              .language
-          );
-          setAnswersValues({
-            topLeftAnswer:
-              currentQuestions[questionParams.nextQuestion.key - 1]
-                .topLeftAnswer.value,
-            topRightAnswer:
-              currentQuestions[questionParams.nextQuestion.key - 1]
-                .topRightAnswer.value,
-            bottomRightAnswer:
-              currentQuestions[questionParams.nextQuestion.key - 1]
-                .bottomRightAnswer.value,
-            bottomLeftAnswer:
-              currentQuestions[questionParams.nextQuestion.key - 1]
-                .bottomLeftAnswer.value,
-          });
-          setAnswersCorrect({
-            TopLeft:
-              currentQuestions[questionParams.nextQuestion.key - 1]
-                .topLeftAnswer.isCorrect,
-            TopRight:
-              currentQuestions[questionParams.nextQuestion.key - 1]
-                .topRightAnswer.isCorrect,
-            BottomRight:
-              currentQuestions[questionParams.nextQuestion.key - 1]
-                .bottomRightAnswer.isCorrect,
-            BottomLeft:
-              currentQuestions[questionParams.nextQuestion.key - 1]
-                .bottomLeftAnswer.isCorrect,
-          });
-          setQuestionParams((currQuestionParams) => {
-            return {
-              ...currQuestionParams,
-              currentQuestion: currQuestionParams.nextQuestion,
-            };
-          });
-        }
-      }
-    }
-  }, [
-    questionParams,
-    //, answersCorrect, currentQuestionType, currentQuestions, newQuestionTypes, setCurrentQuiz, setSaveCurrQuestion
-  ]);
-
-  //Saves the whole quiz
-  const handleSaveQuizButton = (event): void => {
-    if (validate && currentQuiz && questionParams && answersCorrect) {
-      event.preventDefault();
-      const status = validate();
-      if (status !== "OK") {
-        toast.warn(status, {
-          position: "top-right",
-          autoClose: 7000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-        return;
-      }
-      saveTheQuestion(true, questionParams, answersCorrect);
-      fetch(
-        process.env.REACT_APP_FETCH_HOST +
-          "/betterKahoot/quiz/" +
-          currentUser.id,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            //initial id of quiz not saved in db is 0
-            id: currentQuiz.id !== 0 ? currentQuiz.id : null,
-            name: currentQuiz.name,
-            questions: finalQuestions,
-          }), // body data type must match "Content-Type" header
-        }
-      )
-        .then((response) => {
-          if (response.status === 201) {
-            history.push("/");
-          } else {
-            throw new Error(response.status.toString());
-          }
-        })
-        .catch((error) => console.log(error));
-    }
-  };
-
-  //Handles exit button, moves user to the home page
-  const handleExitButton = (): void => {
-    history.push("/");
-  };
 
   //Styling classes
   const classes = useStyles();
@@ -348,11 +96,12 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
           }}
         >
           <TextField
-            {...nameDynamicValue}
             id="name"
             size="small"
             inputProps={{ min: 0, style: { textAlign: "center" } }}
             fullWidth
+            value={currentQuestionData.questionName}
+            onChange={handleQuestionNameChange}
             placeholder="Question name"
             className={classes.textField}
           />
@@ -362,12 +111,16 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
           xs
           width={"80%"}
           sx={{
-            minHeight: language === LanguageType.PLAINTEXT ? "210px" : "326px",
+            minHeight:
+              currentQuestionData.questionLanguage === LanguageType.PLAINTEXT
+                ? "210px"
+                : "326px",
           }}
         >
           <Grid container direction={"row"} spacing={0} sx={{ height: "100%" }}>
             <Grid item xs={10}>
-              {language === LanguageType.PLAINTEXT ? (
+              {currentQuestionData.questionLanguage ===
+              LanguageType.PLAINTEXT ? (
                 <TextField
                   id="theQuestion"
                   //@ts-ignore
@@ -376,14 +129,22 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
                   maxRows={8}
                   placeholder="Write your question here"
                   fullWidth
-                  value={codeText}
+                  value={currentQuestionData.questionText}
                   onChange={handleQuestionTextChange}
                   className={classes.textField}
                 />
               ) : (
                 <Editor
-                  language={language ? language : LanguageType.C}
-                  value={codeText ? codeText : ""}
+                  language={
+                    currentQuestionData.questionLanguage
+                      ? currentQuestionData.questionLanguage
+                      : LanguageType.C
+                  }
+                  value={
+                    currentQuestionData.questionText
+                      ? currentQuestionData.questionText
+                      : ""
+                  }
                   onChange={handleQuestionTextChangeWithValue}
                 />
               )}
@@ -404,7 +165,7 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
                 <RadioGroup
                   aria-labelledby="demo-controlled-radio-buttons-group"
                   name="controlled-radio-buttons-group"
-                  value={language}
+                  value={currentQuestionData.questionLanguage}
                   onChange={handleLanguageChange}
                 >
                   <FormControlLabel
@@ -444,11 +205,9 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
           sx={{ minHeight: "225px", display: "flex", alignItems: "center" }}
         >
           <Answers
-            setAnswersCorrect={setAnswersCorrect}
-            answersValues={answersValues}
-            answersCorrect={answersCorrect}
-            questionParams={questionParams}
+            quizAnswers={quizAnswers}
             handleAnswerValueChange={handleAnswerValueChange}
+            handleAnswerCorrectChange={handleAnswerCorrectChange}
           />
         </Grid>
         <Grid item sx={{ width: "100%", height: "10%" }}>
