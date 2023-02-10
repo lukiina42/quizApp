@@ -3,12 +3,18 @@ import { Grid } from "@mui/material";
 import SidePanel from "./sidePanel/SidePanel";
 import QuestionCreator from "./questionParameters/QuestionCreate";
 import { ToastContainer } from "react-toastify";
-import { NewQuestionType, LanguageType, AnswerValues, AnswersCorrect, ValidationStatus } from "../../common/types";
+import {
+  NewQuestionType,
+  LanguageType,
+  AnswerValues,
+  AnswersCorrect,
+  ValidationStatus,
+} from "../../common/types";
 import { Quiz, Question } from "../../common/types";
 
 interface CurrentAndNextQuestion {
-  key: number,
-  type: string
+  key: number;
+  type: string;
 }
 
 export enum CurrentOperationInQuestion {
@@ -17,9 +23,20 @@ export enum CurrentOperationInQuestion {
 }
 
 export interface QuestionParams {
-  currentOperation: CurrentOperationInQuestion,
-  currentQuestion: CurrentAndNextQuestion,
-  nextQuestion: CurrentAndNextQuestion
+  currentOperation: CurrentOperationInQuestion;
+  currentQuestion: CurrentAndNextQuestion;
+  nextQuestion: CurrentAndNextQuestion;
+}
+
+//Counts amount of enters in the text, used in answer text field
+function countBreakLines(text: string): number {
+  let breakLines = 0;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === "\n") {
+      breakLines++;
+    }
+  }
+  return breakLines;
 }
 
 //The parent component in which the user creates or edits the quiz. It has 2 child components: side panel
@@ -110,11 +127,32 @@ const CreateQuiz = (props) => {
     bottomRightAnswer: "",
   });
 
+  //Handles the code text or the plain text, depends on current language
+  const [codeText, setCodeText] = useState<string>("");
+
+  //Holds current language in which user types the question
+  const [language, setLanguage] = useState<LanguageType>(LanguageType.C);
+
+  const handleLanguageChange = (event) => setLanguage(event.target.value);
+
+  const handleLanguageChangeWithValue = (value: LanguageType) =>
+    setLanguage(value);
+
+  //Handles plain text question change
+  const handleQuestionTextChange = (event): void =>
+    setCodeText(event.target.value);
+
+  //Handles plain text question change
+  const handleQuestionTextChangeWithValue = (value: string) =>
+    setCodeText(value);
+
   //validates current question
   function validate(): ValidationStatus {
     let emptyAnswerValues = 0;
-    const nameElement = document.getElementById("name") as HTMLInputElement | null
-    if (nameElement !== null && nameElement.value  === "") {
+    const nameElement = document.getElementById(
+      "name"
+    ) as HTMLInputElement | null;
+    if (nameElement !== null && nameElement.value === "") {
       return ValidationStatus.NAMEOFQUESTION;
     }
     Object.entries(answersValues).forEach(([, value]) => {
@@ -127,17 +165,6 @@ const CreateQuiz = (props) => {
       return ValidationStatus.TWOANSWERS;
     }
     return ValidationStatus.OK;
-  }
-
-  //Counts amount of enters in the text, used in answer text field
-  function countBreakLines(text: string): number {
-    let breakLines = 0;
-    for (let i = 0; i < text.length; i++) {
-      if (text[i] === "\n") {
-        breakLines++;
-      }
-    }
-    return breakLines;
   }
 
   //Handles change in one of the answers, handles the input
@@ -238,6 +265,14 @@ const CreateQuiz = (props) => {
             currentQuiz={currentQuiz}
             setQuestionParams={setQuestionParams}
             questionParams={questionParams}
+            codeText={codeText}
+            language={language}
+            handleQuestionTextChange={handleQuestionTextChange}
+            handleQuestionTextChangeWithValue={
+              handleQuestionTextChangeWithValue
+            }
+            handleLanguageChange={handleLanguageChange}
+            handleLanguageChangeWithValue={handleLanguageChangeWithValue}
           />
         </Grid>
       </Grid>
