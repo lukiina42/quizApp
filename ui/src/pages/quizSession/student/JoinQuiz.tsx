@@ -5,17 +5,13 @@ import SockJS from "sockjs-client";
 import SOCKET_URL from "../../../common/components";
 import { ToastContainer } from "react-toastify";
 import { toast } from "react-toastify";
-import {
-  Quiz,
-  AnswerValues,
-  Question,
-  answersCorrectInitialState,
-} from "../../../common/types";
+import { Quiz, initialQuizAnswers, QuizAnswers } from "../../../common/types";
 import { Prompt } from "react-router";
 
 import "./index.css";
 import JoinForm from "./joinForm/JoinForm";
 import AnswerToQuestion from "./answerToQuestion/AnswerToQuestion";
+import { mergeSort } from "../../helperMethods";
 
 interface ResponseMessage {
   responseType: string;
@@ -74,13 +70,28 @@ let stompClient;
 const JoinQuiz = () => {
   //Holds the quiz of the session. It's question answers are displayed to the user with each currentQuestionKey change
   const [quiz, setQuiz] = useState<Quiz | null>(null);
+
+  const quizRef = useRef<Quiz>();
   //Holds the info about current question in the session
   const [currentQuestionKey, setCurrentQuestionKey] = useState<number>(0);
   //Contains info about which answers are correct and which are false. This info is saved to each question.
   //Student makes the decision which answers he thinks are correct when he is answering the question
-  const [answersCorrect, setAnswersCorrect] = useState(
-    answersCorrectInitialState
+  const [currentAnswers, setCurrentAnswers] = useState<QuizAnswers | null>(
+    initialQuizAnswers
   );
+
+  const handleAnswerCorrectChange = (key: string) => {
+    setCurrentAnswers((prevQuizAnswers) => {
+      return {
+        ...prevQuizAnswers,
+        [key]: {
+          value: prevQuizAnswers![key].value,
+          isCorrect: !prevQuizAnswers![key].isCorrect,
+        },
+      } as QuizAnswers;
+    });
+  };
+
   //Contains current type of layout the page should have
   const [currentLayout, setCurrentLayout] = useState<string>(
     LayoutType.JoiningQuiz
@@ -92,61 +103,9 @@ const JoinQuiz = () => {
   //Displayed when user is waiting for teacher's action, can have multiple values
   let textWhenWaiting = useRef("undefined");
 
-  //derived answers state -> is computed when quiz or currentQuestionKey change
-  //it is set to null if user is not yet connected to session or the teacher
-  //hasn't yet started the quiz with the button
-  const currentAnswers: AnswerValues | null =
-    quiz === null
-      ? null
-      : currentQuestionKey === 0
-      ? null
-      : {
-          topLeftAnswer:
-            quiz.questions[currentQuestionKey - 1].topLeftAnswer.value,
-          topRightAnswer:
-            quiz.questions[currentQuestionKey - 1].topRightAnswer.value,
-          bottomLeftAnswer:
-            quiz.questions[currentQuestionKey - 1].bottomLeftAnswer.value,
-          bottomRightAnswer:
-            quiz.questions[currentQuestionKey - 1].bottomRightAnswer.value,
-        };
-
   //refs for handling join session form text fields
   const sessionIdTextField = useRef<HTMLInputElement>(null);
   const userNameTextField = useRef<HTMLInputElement>(null);
-
-  //helper for the merge sort
-  function merge(left: Question[], right: Question[]) {
-    let sortedArr = []; // the sorted elements will go here
-
-    while (left.length && right.length) {
-      // insert the smallest element to the sortedArr
-      if (left[0].key < right[0].key) {
-        // @ts-ignore: Object is possibly 'undefined'.
-        sortedArr.push(left.shift());
-      } else {
-        // @ts-ignore: Object is possibly 'undefined'.
-        sortedArr.push(right.shift());
-      }
-    }
-
-    // use spread operator and create a new array, combining the three arrays
-    return [...sortedArr, ...left, ...right];
-  }
-
-  //merge sort for the quiz, sort the questions in it
-  function mergeSort(arr: Question[]) {
-    const half = arr.length / 2;
-
-    // the base case is array length <=1
-    if (arr.length <= 1) {
-      return arr;
-    }
-
-    const left = arr.splice(0, half); // the first half of the array
-    const right = arr;
-    return merge(mergeSort(left), mergeSort(right));
-  }
 
   //makes sure that user gets alerted when he leaves
   const alertUser = (e): void => {
@@ -175,6 +134,7 @@ const JoinQuiz = () => {
             let questions = quiz.questions;
             const newQuestions = mergeSort(questions);
             quiz.questions = newQuestions;
+            quizRef.current = quiz;
             setQuiz(quiz);
             setCurrentLayout(LayoutType.WaitingForTeacher);
             //also want to notify user from now on that he won't be able to join the session anymore
@@ -198,8 +158,33 @@ const JoinQuiz = () => {
       //if user gets message to swap to the next question
       case responseType.NEXTQUESTION:
         const nextQuestionMessage: nextQuestionMessage = payloadData;
-        setAnswersCorrect(answersCorrectInitialState);
-        setCurrentQuestionKey(nextQuestionMessage.questionKey);
+        const nextKey = nextQuestionMessage.questionKey;
+        setCurrentAnswers((prevAnswers) => {
+          return {
+            ...prevAnswers,
+            topRightAnswer: {
+              isCorrect: false,
+              value:
+                quizRef.current!.questions[nextKey - 1].topRightAnswer.value,
+            },
+            topLeftAnswer: {
+              isCorrect: false,
+              value:
+                quizRef.current!.questions[nextKey - 1].topLeftAnswer.value,
+            },
+            bottomRightAnswer: {
+              isCorrect: false,
+              value:
+                quizRef.current!.questions[nextKey - 1].bottomRightAnswer.value,
+            },
+            bottomLeftAnswer: {
+              isCorrect: false,
+              value:
+                quizRef.current!.questions[nextKey - 1].bottomLeftAnswer.value,
+            },
+          } as QuizAnswers;
+        });
+        setCurrentQuestionKey(nextKey);
         setCurrentLayout(LayoutType.AnsweringQuestion);
         textWhenWaiting.current = "undefined";
         break;
@@ -222,7 +207,7 @@ const JoinQuiz = () => {
       case responseType.QUESTIONEND:
         if (textWhenWaiting.current === "undefined")
           textWhenWaiting.current = "was not";
-        setAnswersCorrect(answersCorrectInitialState);
+        setCurrentAnswers(initialQuizAnswers);
         setCurrentLayout(LayoutType.WaitingForTeacher);
         break;
       default:
@@ -314,14 +299,14 @@ const JoinQuiz = () => {
     const newQuestionAnswer: QuestionAnswer = {
       sessionId: sessionId.current,
       questionKey: currentQuestionKey,
-      topLeftAnswer: answersCorrect.TopLeft,
-      bottomLeftAnswer: answersCorrect.BottomLeft,
-      topRightAnswer: answersCorrect.TopRight,
-      bottomRightAnswer: answersCorrect.BottomRight,
+      topLeftAnswer: currentAnswers!.topLeftAnswer.isCorrect,
+      bottomLeftAnswer: currentAnswers!.bottomLeftAnswer.isCorrect,
+      topRightAnswer: currentAnswers!.topRightAnswer.isCorrect,
+      bottomRightAnswer: currentAnswers!.bottomRightAnswer.isCorrect,
     };
     stompClient.send("/ws/submitAnswer", {}, JSON.stringify(newQuestionAnswer));
     textWhenWaiting.current = "was";
-    setAnswersCorrect(answersCorrectInitialState);
+    setCurrentAnswers(initialQuizAnswers);
     setCurrentLayout(LayoutType.WaitingForTeacher);
   };
 
@@ -384,8 +369,7 @@ const JoinQuiz = () => {
       {currentLayout === LayoutType.AnsweringQuestion && (
         <AnswerToQuestion
           currentAnswers={currentAnswers}
-          answersCorrect={answersCorrect}
-          setAnswersCorrect={setAnswersCorrect}
+          handleAnswerCorrectChange={handleAnswerCorrectChange}
           handleSendAnswersButton={handleSendAnswersButton}
         />
       )}

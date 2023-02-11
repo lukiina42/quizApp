@@ -1,21 +1,17 @@
-import React, { Dispatch, SetStateAction } from "react";
 import Answers from "../../../quiz/questionParameters/answers/Answers";
 import { Button, Grid } from "@mui/material";
-import { AnswersCorrect, AnswerValues } from "../../../../common/types";
-
+import { QuizAnswers } from "../../../../common/types";
 interface AnswerToQuestionProps {
-  currentAnswers: AnswerValues | null;
-  answersCorrect: AnswersCorrect;
-  setAnswersCorrect: Dispatch<SetStateAction<AnswersCorrect>>;
+  currentAnswers: QuizAnswers | null;
+  handleAnswerCorrectChange: (key: string) => void;
   handleSendAnswersButton(): void;
 }
 
 //Displays the possible answers to the question and lets user decide which answers they think are correct and submit the choice
 function AnswerToQuestion({
   currentAnswers,
-  answersCorrect,
-  setAnswersCorrect,
   handleSendAnswersButton,
+  handleAnswerCorrectChange,
 }: AnswerToQuestionProps) {
   return (
     <Grid
@@ -31,9 +27,9 @@ function AnswerToQuestion({
       <div className="answersDiv">
         <Answers
           disabled
-          answersValues={currentAnswers ? currentAnswers : undefined}
-          answersCorrect={answersCorrect}
-          setAnswersCorrect={setAnswersCorrect}
+          quizAnswers={currentAnswers ? currentAnswers : undefined}
+          handleAnswerCorrectChange={handleAnswerCorrectChange}
+          allowCorrectSwitch
         />
         <Button
           variant="contained"
