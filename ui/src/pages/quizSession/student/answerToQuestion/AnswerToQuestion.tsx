@@ -1,4 +1,3 @@
-import React, { Dispatch, SetStateAction } from "react";
 import Answers from "../../../quiz/questionParameters/answers/Answers";
 import { Button, Grid } from "@mui/material";
 import { QuizAnswers } from "../../../../common/types";

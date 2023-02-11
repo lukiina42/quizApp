@@ -2,7 +2,6 @@ import React from "react";
 import { Grid, Button, Typography, Box } from "@mui/material";
 import AddBoxRoundedIcon from "@mui/icons-material/AddBoxRounded";
 import Popover from "@mui/material/Popover";
-import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { NewQuestionType, Quiz, ValidationStatus } from "../../../common/types";

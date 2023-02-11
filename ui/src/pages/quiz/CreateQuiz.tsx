@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { Grid } from "@mui/material";
 import SidePanel from "./sidePanel/SidePanel";
@@ -10,14 +10,10 @@ import {
   QuizAnswers,
   ValidationStatus,
   UserInterface,
-  Question,
 } from "../../common/types";
 import { Quiz } from "../../common/types";
-import {
-  countBreakLines,
-  createNewQuizQuestion,
-  mergeSort,
-} from "./helperMethods/index";
+import { countBreakLines, createNewQuizQuestion } from "./helperMethods/index";
+import { mergeSort } from "../helperMethods/index";
 import { useUser } from "../../context/UserContext";
 
 interface CurrentAndNextQuestion {
@@ -68,19 +64,21 @@ const CreateQuiz = (props) => {
   //case only the name will be set or edits existing quiz)
   const quiz: Quiz = props.location.state ? props.location.state : null;
 
-  let aggregatedQuiz: Quiz = quiz.questions
-    ? quiz
-    : { id: 0, name: quiz.name, questions: [createNewQuizQuestion(1)] };
-  if (aggregatedQuiz.questions) {
-    //@ts-ignore
-    let questions = mergeSort(aggregatedQuiz.questions);
-    aggregatedQuiz = {
-      ...aggregatedQuiz,
-      questions,
-    };
-  }
+  let aggregatedQuiz: Quiz = useMemo(() => {
+    let temporaryQuiz = quiz.questions
+      ? quiz
+      : { id: 0, name: quiz.name, questions: [createNewQuizQuestion(1)] };
+    if (temporaryQuiz.questions) {
+      let questions = mergeSort(temporaryQuiz.questions);
+      return {
+        ...temporaryQuiz,
+        questions,
+      };
+    }
+    return temporaryQuiz;
+  }, [quiz]);
 
-  //for initial and end state of the quiz (sent to be)
+  //for initial and end state of the quiz (sent to BE)
   const currentQuizRef = useRef(aggregatedQuiz);
 
   const [currentQuiz, setCurrentQuiz] = useState<Quiz>(aggregatedQuiz);

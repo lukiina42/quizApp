@@ -11,7 +11,7 @@ import { Prompt } from "react-router";
 import "./index.css";
 import JoinForm from "./joinForm/JoinForm";
 import AnswerToQuestion from "./answerToQuestion/AnswerToQuestion";
-import { mergeSort } from "../../quiz/helperMethods";
+import { mergeSort } from "../../helperMethods";
 
 interface ResponseMessage {
   responseType: string;
