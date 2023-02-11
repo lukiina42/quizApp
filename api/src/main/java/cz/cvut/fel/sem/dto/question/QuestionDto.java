@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class QuestionDto {
     private int key;
-    @JsonProperty("type")
     private QuestionType questionType;
     private String name;
     @JsonProperty("question")

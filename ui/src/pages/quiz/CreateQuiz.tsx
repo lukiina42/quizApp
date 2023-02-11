@@ -80,7 +80,7 @@ const CreateQuiz = (props) => {
     };
   }
 
-  //todo should do this other way, this is used for initial states
+  //for initial and end state of the quiz (sent to be)
   const currentQuizRef = useRef(aggregatedQuiz);
 
   const [currentQuiz, setCurrentQuiz] = useState<Quiz>(aggregatedQuiz);
@@ -136,6 +136,7 @@ const CreateQuiz = (props) => {
         ...prevQuizAnswers,
         [key]: {
           ...[key],
+          value: prevQuizAnswers[key].value,
           isCorrect: !prevQuizAnswers[key].isCorrect,
         },
       };
@@ -182,7 +183,7 @@ const CreateQuiz = (props) => {
   }
 
   //Saves the question with the current values -> states or values of text fields are used
-  const saveTheQuestion = (): Question => {
+  const saveTheQuestion = (finalSave: boolean): void => {
     const updatedQuestion =
       //currentQuestionData.questionType === NewQuestionType.QUIZ //TODO add Question type here to newQuestion
       {
@@ -215,20 +216,31 @@ const CreateQuiz = (props) => {
           isCorrect: quizAnswers.bottomRightAnswer.isCorrect,
         },
       };
-    //update questions in quiz without mutating the state
-    setCurrentQuiz((prevQuiz) => {
-      let updatedQuestions = [...prevQuiz.questions];
-      updatedQuestions[currentQuestionData.questionKey - 1] = updatedQuestion;
-      return {
-        ...prevQuiz,
-        questions: updatedQuestions,
-      };
-    });
+    const updatedQuestionsFromQuiz = [...currentQuiz.questions];
+    updatedQuestionsFromQuiz[currentQuestionData.questionKey - 1] =
+      updatedQuestion;
 
-    return updatedQuestion;
+    if (!finalSave) {
+      //update questions in quiz without mutating the state
+      setCurrentQuiz((prevQuiz) => {
+        return {
+          ...prevQuiz,
+          questions: updatedQuestionsFromQuiz,
+        };
+      });
+    } else {
+      currentQuizRef.current = {
+        ...currentQuizRef.current,
+        questions: updatedQuestionsFromQuiz,
+      };
+    }
   };
 
   const handleChangeQuestion = (key: number) => {
+    if (key + 1 === currentQuestionData.questionKey) {
+      //don't do anything if current question is clicked
+      return;
+    }
     const status = validate();
     if (status !== "OK") {
       toast.warn(status, {
@@ -237,7 +249,7 @@ const CreateQuiz = (props) => {
       return;
     }
 
-    saveTheQuestion();
+    saveTheQuestion(false);
 
     const newQuestion = currentQuiz.questions[key];
 
@@ -272,7 +284,7 @@ const CreateQuiz = (props) => {
       });
       return;
     }
-    saveTheQuestion();
+    saveTheQuestion(false);
 
     const newQuestion = createNewQuizQuestion(currentQuiz.questions.length + 1);
     setCurrentQuiz((prevQuiz) => {
@@ -313,20 +325,22 @@ const CreateQuiz = (props) => {
       });
       return;
     }
-    //delete the question from the list
+    //delete question from the question list - need the updated list immediately
+    //so if I did this in the setState which is asynchronout I would get old data below
+    const updatedQuestions = [...currentQuiz.questions];
+    updatedQuestions.splice(key - 1, 1);
+    for (let i = key - 1; i < updatedQuestions.length; i++) {
+      //Edit the keys of remaining questions
+      //If there are questions 1, 2 and 3 and user deletes 2,
+      //we don't want question 1 and question 3 remain on the page
+      let question = updatedQuestions[i];
+      question.key = i + 1;
+      updatedQuestions[i] = question;
+    }
+    //update the state
     setCurrentQuiz((prevQuiz) => {
-      const updatedQuestions = [...prevQuiz.questions];
-      updatedQuestions.splice(key - 1, 1);
-      for (let i = key - 1; i < updatedQuestions.length; i++) {
-        //Edit the keys of remaining questions
-        //If there are questions 1, 2 and 3 and user deletes 2,
-        //we don't want question 1 and question 3 remain on the page
-        let question = updatedQuestions[i];
-        question.key = i + 1;
-        updatedQuestions[i] = question;
-      }
       return {
-        ...currentQuiz,
+        ...prevQuiz,
         questions: updatedQuestions,
       };
     });
@@ -334,10 +348,9 @@ const CreateQuiz = (props) => {
     //user wants to delete current question and there are more questions in the quiz
     if (currentQuestionData.questionKey === key) {
       const nextQuestion =
-        key <= currentQuiz.questions.length
-          ? currentQuiz.questions[key - 1]
-          : currentQuiz.questions[key - 2];
-      debugger;
+        key <= updatedQuestions.length
+          ? updatedQuestions[key - 1]
+          : updatedQuestions[key - 2];
       setCurrentQuestionData((prevCurrentQuestionData) => {
         return {
           ...prevCurrentQuestionData,
@@ -383,7 +396,14 @@ const CreateQuiz = (props) => {
       });
       return;
     }
-    saveTheQuestion();
+    saveTheQuestion(true);
+    const bodyToSave = {
+      ...currentQuiz,
+      id: currentQuiz.id === 0 ? null : currentQuiz.id,
+      questions: currentQuizRef.current.questions,
+    };
+    console.log("body sent to be", bodyToSave);
+    debugger;
     fetch(
       process.env.REACT_APP_FETCH_HOST + "/betterKahoot/quiz/" + currentUser.id,
       {
@@ -391,10 +411,7 @@ const CreateQuiz = (props) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...currentQuiz,
-          id: currentQuiz.id === 0 ? null : currentQuiz.id,
-        }), // body data type must match "Content-Type" header
+        body: JSON.stringify(bodyToSave), // body data type must match "Content-Type" header
       }
     )
       .then((response) => {
