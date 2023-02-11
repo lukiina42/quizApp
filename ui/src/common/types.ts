@@ -2,7 +2,6 @@
 
 //one of the answers to the question
 interface Answer {
-  answerType: "QUIZ" | "TRUEFALSE";
   value: string;
   isCorrect: boolean;
 }
@@ -44,24 +43,10 @@ export enum LanguageType {
   PLAINTEXT = "PLAINTEXT",
 }
 
-//Initial state of the answers true/false parameter.
-//The user can change those values while creating quiz or while answering to the question in the session
-export const answersCorrectInitialState = {
-  TopLeft: false,
-  TopRight: false,
-  BottomRight: false,
-  BottomLeft: false,
+const initialQuizAnswer: Answer = {
+  value: "",
+  isCorrect: false,
 };
-
-//This interface is used in useState hook multiple times,
-//for example when teacher is creating a question - the information
-//whether the answer is marked as correct is saved in this interface
-export interface AnswersCorrect {
-  TopLeft: boolean;
-  TopRight: boolean;
-  BottomRight: boolean;
-  BottomLeft: boolean;
-}
 
 //Defines text values of the answers
 export interface QuizAnswers {
@@ -70,12 +55,6 @@ export interface QuizAnswers {
   bottomLeftAnswer: Answer;
   bottomRightAnswer: Answer;
 }
-
-const initialQuizAnswer: Answer = {
-  answerType: "QUIZ",
-  value: "",
-  isCorrect: false,
-};
 
 export const initialQuizAnswers = {
   topLeftAnswer: initialQuizAnswer,

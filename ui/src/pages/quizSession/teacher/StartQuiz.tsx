@@ -399,19 +399,31 @@ const StartQuiz = (props) => {
                 <QuestionDisplay
                   questionName={currentQuestion?.name}
                   codeTextProp={currentQuestion?.question.value}
-                  answersValues={{
-                    topLeftAnswer: currentQuestion
-                      ? currentQuestion.topLeftAnswer.value
-                      : "",
-                    topRightAnswer: currentQuestion
-                      ? currentQuestion.topRightAnswer.value
-                      : "",
-                    bottomLeftAnswer: currentQuestion
-                      ? currentQuestion?.bottomLeftAnswer.value
-                      : "",
-                    bottomRightAnswer: currentQuestion
-                      ? currentQuestion?.bottomRightAnswer.value
-                      : "",
+                  quizAnswers={{
+                    topLeftAnswer: {
+                      value: currentQuestion
+                        ? currentQuestion.topLeftAnswer.value
+                        : "",
+                      isCorrect: false,
+                    },
+                    topRightAnswer: {
+                      value: currentQuestion
+                        ? currentQuestion.topRightAnswer.value
+                        : "",
+                      isCorrect: false,
+                    },
+                    bottomLeftAnswer: {
+                      value: currentQuestion
+                        ? currentQuestion.bottomLeftAnswer.value
+                        : "",
+                      isCorrect: false,
+                    },
+                    bottomRightAnswer: {
+                      value: currentQuestion
+                        ? currentQuestion.bottomRightAnswer.value
+                        : "",
+                      isCorrect: false,
+                    },
                   }}
                   languageProp={currentQuestion?.question.language}
                 />

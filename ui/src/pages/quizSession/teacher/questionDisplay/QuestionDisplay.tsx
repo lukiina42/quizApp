@@ -2,12 +2,7 @@ import React, { Dispatch, SetStateAction } from "react";
 import { Grid, TextField } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import "react-toastify/dist/ReactToastify.css";
-import {
-  LanguageType,
-  Quiz,
-  ValidationStatus,
-  AnswersCorrect,
-} from "../../../../common/types";
+import { LanguageType, QuizAnswers } from "../../../../common/types";
 import Answers from "../../../quiz/questionParameters/answers/Answers";
 import Editor from "../../../quiz/questionParameters/codeEditor/CustomCodeEditor";
 
@@ -23,8 +18,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 interface QuestionDisplayProps {
-  answersCorrect?: AnswersCorrect;
-  answersValues: any;
+  quizAnswers: QuizAnswers;
   questionName?: string;
   codeTextProp?: string;
   languageProp?: LanguageType;
@@ -32,13 +26,7 @@ interface QuestionDisplayProps {
 
 //Represents the right side of the page, where user sets parameters of the question
 const QuestionDisplay = (props: QuestionDisplayProps) => {
-  const {
-    answersCorrect,
-    answersValues,
-    questionName,
-    codeTextProp,
-    languageProp,
-  } = props;
+  const { quizAnswers, questionName, codeTextProp, languageProp } = props;
 
   //need to set the value of name text field in the question if the is not updating the quiz (which means he is presenting it)
   const nameDynamicValue = { value: questionName };
@@ -107,11 +95,11 @@ const QuestionDisplay = (props: QuestionDisplayProps) => {
           width={"80%"}
           sx={{ minHeight: "225px", display: "flex", alignItems: "center" }}
         >
-          {/* <Answers
-            answersValues={answersValues}
-            answersCorrect={answersCorrect}
+          <Answers
+            quizAnswers={quizAnswers}
             disabled
-          /> */}
+            handleAnswerCorrectChange={() => {}}
+          />
         </Grid>
       </Grid>
     </>

@@ -326,7 +326,7 @@ const CreateQuiz = (props) => {
       return;
     }
     //delete question from the question list - need the updated list immediately
-    //so if I did this in the setState which is asynchronout I would get old data below
+    //so if I did this in the setState which is asynchronous I would get old data below
     const updatedQuestions = [...currentQuiz.questions];
     updatedQuestions.splice(key - 1, 1);
     for (let i = key - 1; i < updatedQuestions.length; i++) {

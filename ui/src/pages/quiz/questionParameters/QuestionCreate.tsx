@@ -1,4 +1,3 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Grid, TextField, Button } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import Editor from "./codeEditor/CustomCodeEditor";
@@ -8,21 +7,9 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
 import Answers from "./answers/Answers";
-import { useHistory } from "react-router-dom";
-import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {
-  NewQuestionType,
-  LanguageType,
-  Quiz,
-  ValidationStatus,
-  AnswersCorrect,
-  Question,
-  UserInterface,
-  QuizAnswers,
-} from "../../../common/types";
-import { useUser } from "../../../context/UserContext";
-import { QuestionData, QuestionParams } from "../CreateQuiz";
+import { LanguageType, QuizAnswers } from "../../../common/types";
+import { QuestionData } from "../CreateQuiz";
 
 const useStyles = makeStyles((theme) => ({
   bottomButtons: {

@@ -47,6 +47,7 @@ interface AnswersProps {
   handleAnswerCorrectChange: (key: string) => void;
   disabled?: boolean;
   quizAnswers?: QuizAnswers;
+  allowCorrectSwitch?: boolean;
 }
 
 //Displays the answers in current question. The teacher can write into them when he is editting the question, but they are disabled
@@ -60,6 +61,7 @@ const Answers = (props: AnswersProps) => {
     handleAnswerCorrectChange,
     disabled,
     quizAnswers,
+    allowCorrectSwitch,
   } = props;
 
   //if disabled prop is true, it means we just want to show the answers to user in JoinQuiz.js
@@ -93,7 +95,9 @@ const Answers = (props: AnswersProps) => {
           {quizAnswers[id].isCorrect ? (
             <ThumbUpIcon
               color="secondary"
-              onClick={() => handleAnswerCorrectChange(id)}
+              onClick={
+                disabled ? () => {} : () => handleAnswerCorrectChange(id)
+              }
               onMouseEnter={(event) =>
                 (event.currentTarget.style.cursor = "pointer")
               }
@@ -104,7 +108,9 @@ const Answers = (props: AnswersProps) => {
           ) : (
             <ThumbDownIcon
               color="error"
-              onClick={() => handleAnswerCorrectChange(id)}
+              onClick={
+                disabled ? () => {} : () => handleAnswerCorrectChange(id)
+              }
               onMouseEnter={(event) =>
                 (event.currentTarget.style.cursor = "pointer")
               }
@@ -137,7 +143,7 @@ const Answers = (props: AnswersProps) => {
             id={"topLeftAnswer"}
             //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
             onClick={
-              disabled
+              disabled && allowCorrectSwitch
                 ? () => handleAnswerCorrectChange("topLeftAnswer")
                 : () => {}
             }
@@ -145,7 +151,7 @@ const Answers = (props: AnswersProps) => {
             inputProps={{ style: { textAlign: "center" } }}
             sx={{ backgroundColor: "#66A4FF" }}
             InputProps={
-              disabled && !quizAnswers
+              disabled && !allowCorrectSwitch
                 ? {}
                 : {
                     endAdornment: <AdornmentCustom id="topLeftAnswer" />,
@@ -161,7 +167,7 @@ const Answers = (props: AnswersProps) => {
             className={classes.answer}
             //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
             onClick={
-              disabled
+              disabled && allowCorrectSwitch
                 ? () => handleAnswerCorrectChange("topRightAnswer")
                 : () => {}
             }
@@ -169,7 +175,7 @@ const Answers = (props: AnswersProps) => {
             inputProps={{ style: { textAlign: "center" } }}
             sx={{ backgroundColor: "#B456EB" }}
             InputProps={
-              disabled && !quizAnswers
+              disabled && !allowCorrectSwitch
                 ? {}
                 : {
                     endAdornment: <AdornmentCustom id="topRightAnswer" />,
@@ -187,7 +193,7 @@ const Answers = (props: AnswersProps) => {
                 className={classes.answer}
                 //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
                 onClick={
-                  disabled
+                  disabled && allowCorrectSwitch
                     ? () => handleAnswerCorrectChange("bottomLeftAnswer")
                     : () => {}
                 }
@@ -195,7 +201,7 @@ const Answers = (props: AnswersProps) => {
                 inputProps={{ style: { textAlign: "center" } }}
                 sx={{ backgroundColor: "#EB9B56" }}
                 InputProps={
-                  disabled && !quizAnswers
+                  disabled && !allowCorrectSwitch
                     ? {}
                     : {
                         endAdornment: <AdornmentCustom id="bottomLeftAnswer" />,
@@ -211,7 +217,7 @@ const Answers = (props: AnswersProps) => {
                 className={classes.answer}
                 //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
                 onClick={
-                  disabled
+                  disabled && allowCorrectSwitch
                     ? () => handleAnswerCorrectChange("bottomRightAnswer")
                     : () => {}
                 }
@@ -219,7 +225,7 @@ const Answers = (props: AnswersProps) => {
                 inputProps={{ style: { textAlign: "center" } }}
                 sx={{ backgroundColor: "#FFFF99" }}
                 InputProps={
-                  disabled && !quizAnswers
+                  disabled && !allowCorrectSwitch
                     ? {}
                     : {
                         endAdornment: (
