@@ -1,7 +1,3 @@
-//@ts-ignore
-
-import React, { useState } from "react";
-
 import {
   Grid,
   Typography,
@@ -13,79 +9,50 @@ import {
 import SettingsIcon from "@mui/icons-material/Settings";
 import { NavLink } from "react-router-dom";
 
-import { AnchorType } from "../Home";
+import { useAnchor } from "./useAnchor/";
 import { Quiz, UserInterface } from "../../../common/types";
 import { HashLoader } from "react-spinners";
 import { deleteQuiz, loadAllQuizes } from "../../../api/quizApi";
+import { useQuery, useQueryClient, useMutation } from "react-query";
 
 interface LoggedUserHomeProps {
   currentUser: UserInterface;
 }
 
+//The method used to find quiz by id in current quizzes
+const findQuizById = (id: number, quizes: Quiz[]): Quiz => {
+  let quizToReturn;
+  quizes.forEach((quiz) => {
+    if (quiz.id === id) {
+      quizToReturn = quiz;
+    }
+  });
+  return quizToReturn;
+};
+
 //The home for logged in user. It displays the current user's
 //quizzes and enables him to edit, delete or start (Start testing students) them
 export default function LoggedUserHome({ currentUser }: LoggedUserHomeProps) {
-  //The quizzes of logged in user, initialized to empty array and the is fetched from the server
-  const [quizes, setQuizes] = useState<Array<Quiz>>([]);
+  const { anchor, open, handleOptionsOpen, handleClose } = useAnchor();
 
-  const [isLoading, setIsLoading] = useState(false);
-
-  //The method used to find quiz by id in current quizzes
-  const findQuizById = (id: number): Quiz => {
-    let quizToReturn;
-    quizes.forEach((quiz) => {
-      if (quiz.id === id) {
-        quizToReturn = quiz;
-      }
-    });
-    return quizToReturn;
-  };
-
-  //Anchor state, holds the DOM element where the popover should be
-  //displayed and id (key) of the quiz about which the popover displays possibilities
-  const anchorInitial: AnchorType = {
-    element: null,
-    id: 0,
-  };
-  const [anchorEl, setAnchorEl] = React.useState<AnchorType>(anchorInitial);
-  const open = Boolean(anchorEl.element);
-
-  //Opens options about clicked quiz
-  const handleOptionsOpen = (event, idToSet: number) => {
-    setAnchorEl({
-      element: event.currentTarget,
-      id: idToSet,
-    });
-  };
-
-  //Closes options
-  const handleClose = () => {
-    setAnchorEl(anchorInitial);
-  };
+  const queryClient = useQueryClient();
 
   //Fetches all of the quizzes of current user
-  //Not ideal but it did the trick for the school project. Also I don't suspect people
-  //having more than 10 quizes and also one quiz doesn't contain that much data
-  const fetchAllQuizzes = (id: number) => {
-    setIsLoading(true);
-    loadAllQuizes(id)
-      .then((quizes) => {
-        //@ts-ignore
-        setQuizes(quizes);
-      })
-      .catch((error) => console.log(error))
-      .finally(() => setIsLoading(false));
-  };
+  const {
+    data: loadedQuizes,
+    isLoading,
+    error,
+  } = useQuery("quizes", () => loadAllQuizes(currentUser.id));
 
   //Deletes the quiz the user chose to delete by it's id
-  const handleDeleteQuiz = () => {
-    deleteQuiz(anchorEl.id)
-      .then(() => {
-        handleClose();
-        fetchAllQuizzes(currentUser.id);
-      })
-      .catch((error) => console.log(error));
-  };
+  const deleteQuizMutation = useMutation(deleteQuiz, {
+    onSuccess: () => {
+      queryClient.invalidateQueries("quizes");
+      handleClose();
+    },
+  });
+
+  if (error) throw error;
 
   return (
     <Grid
@@ -122,7 +89,7 @@ export default function LoggedUserHome({ currentUser }: LoggedUserHomeProps) {
             />
           ) : (
             <>
-              {quizes.length === 0 ? (
+              {loadedQuizes.length === 0 ? (
                 <Typography fontWeight={"bold"}>
                   You sadly don't have any created quizzes, create one using the
                   button at the top!
@@ -132,7 +99,7 @@ export default function LoggedUserHome({ currentUser }: LoggedUserHomeProps) {
                   <Grid item>
                     <Typography fontWeight={"bold"}>Your quizzes:</Typography>
                   </Grid>
-                  {quizes.map((quiz) => (
+                  {loadedQuizes.map((quiz) => (
                     <Grid item key={quiz.id} id={quiz.id?.toString()}>
                       <TextField
                         id="demo-positioned-button"
@@ -171,7 +138,7 @@ export default function LoggedUserHome({ currentUser }: LoggedUserHomeProps) {
                       <Menu
                         id="demo-positioned-menu"
                         aria-labelledby="demo-positioned-button"
-                        anchorEl={anchorEl.element}
+                        anchorEl={anchor.element}
                         open={open}
                         onClose={handleClose}
                         anchorOrigin={{
@@ -187,18 +154,24 @@ export default function LoggedUserHome({ currentUser }: LoggedUserHomeProps) {
                           component={NavLink}
                           to={{
                             pathname: "/quiz",
-                            state: findQuizById(anchorEl.id),
+                            state: findQuizById(anchor.id, loadedQuizes),
                           }}
                           onClick={handleClose}
                         >
                           Edit
                         </MenuItem>
-                        <MenuItem onClick={handleDeleteQuiz}>Delete</MenuItem>
+                        <MenuItem
+                          onClick={() => {
+                            deleteQuizMutation.mutate(anchor.id);
+                          }}
+                        >
+                          Delete
+                        </MenuItem>
                         <MenuItem
                           component={NavLink}
                           to={{
                             pathname: "/startQuiz",
-                            state: findQuizById(anchorEl.id),
+                            state: findQuizById(anchor.id, loadedQuizes),
                           }}
                           onClick={handleClose}
                         >
