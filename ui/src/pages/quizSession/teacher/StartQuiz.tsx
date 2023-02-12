@@ -155,7 +155,9 @@ const StartQuiz = (props) => {
   const onConnected = () => {
     stompClient.subscribe("/user/topic/session", onMessageReceived);
     //request to create of new session with the started quiz id
-    const quizIdToSend: CreateSessionMessageRequest = { quizId: quiz.id };
+    const quizIdToSend: CreateSessionMessageRequest = {
+      quizId: quiz.id as number,
+    };
     stompClient.send("/ws/createsession", {}, JSON.stringify(quizIdToSend));
   };
 
@@ -243,6 +245,8 @@ const StartQuiz = (props) => {
       window.removeEventListener("beforeunload", alertUser);
       sendRequestToEndTheQuiz(EndSessionReason.PAGELEAVE);
     };
+    // disable eslint because of onConnected, tried to wrap it in useCallback but didn't work
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   //If last question ended, request the students' results
