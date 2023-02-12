@@ -3,7 +3,7 @@ import MaterialTable from "material-table";
 import "./index.css";
 import { Button } from "@mui/material";
 
-import { StudentScoresType } from "../StartQuiz";
+import { StudentScoresType } from "../types";
 
 interface StudentResultsProps {
   studentScores: StudentScoresType | null;

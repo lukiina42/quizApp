@@ -1,6 +1,6 @@
 import React from "react";
 
-import { QuestionEvaluationType } from "../../StartQuiz";
+import { QuestionEvaluationType } from "../../types";
 import { Question } from "../../../../../common/types";
 
 import ThumbDownIcon from "@mui/icons-material/ThumbDown";

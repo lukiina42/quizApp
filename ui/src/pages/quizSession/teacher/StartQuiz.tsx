@@ -10,90 +10,26 @@ import ListItemText from "@mui/material/ListItemText";
 import PersonIcon from "@mui/icons-material/Person";
 import { Prompt } from "react-router";
 import { useHistory } from "react-router-dom";
-
 import { Quiz, Question } from "../../../common/types";
 import QuestionDisplay from "./questionDisplay/QuestionDisplay";
 import QuestionEvaluation from "./questionEvaluation/QuestionEvaluation";
 import StudentResults from "./studentResults/StudentResults";
-
 import { HashLoader } from "react-spinners";
-
-interface NewStudentMessageResponse {
-  name: string;
-}
-
-interface CreateSessionMessageResponse {
-  sessionId: number;
-}
-
-interface SessionEvaluationRequest {
-  sessionId: number;
-}
-
-interface CreateSessionMessageRequest {
-  quizId: number;
-}
-
-interface NextMessageRequest {
-  sessionId: number;
-  questionKey: number;
-}
-
-export interface QuestionEvaluationType {
-  amountOfAnswersTotal: number;
-  amountOfCorrectAnswers: number;
-  amountsOfPositiveAnswersToEachAnswer: {
-    BOTTOMRIGHT: number;
-    BOTTOMLEFT: number;
-    TOPLEFT: number;
-    TOPRIGHT: number;
-  };
-  questionKey: number;
-}
-
-//type of requests which send only the session id to the server
-//those include: get evaluation of the quiz and end the session
-interface EndSessionRequest {
-  sessionId: number;
-  reason: string;
-}
-
-export interface StudentScoresType {
-  [key: string]: number;
-}
-
-interface StudentResultsType {
-  studentScores: StudentScoresType;
-}
-
-interface StudentAnsweredType {
-  amountOfAnswers: number;
-  amountOfStudents: number;
-}
-
-//The type of messages that come from the server
-const MessageType = {
-  CreateSessionResponse: "CREATESESSIONRESPONSE",
-  NewStudentInSession: "NEWSTUDENTINSESSION",
-  QuestionEvaluation: "QUESTIONEVALUATION",
-  StudentResults: "STUDENTRESULTS",
-  StudentAnswered: "STUDENTANSWERED",
-};
-
-//Enum like structure defining which layout should be currently displayed
-const LayoutType = {
-  UsersJoining: "UsersJoining",
-  DisplayQuestion: "DisplayQuestion",
-  ShowEvaluation: "ShowEvaluation",
-  StudentScores: "StudentScores",
-};
-
-//The reasons why the end session request is sent to the server.
-//If it is unexpected page leave, then the session is deleted, saved otherwise.
-const EndSessionReason = {
-  PAGELEAVE: "PAGELEAVE",
-  ENDOFQUIZ: "ENDOFQUIZ",
-};
+import {
+  CreateSessionMessageRequest,
+  CreateSessionMessageResponse,
+  EndSessionReason,
+  EndSessionRequest,
+  LayoutType,
+  MessageType,
+  NewStudentMessageResponse,
+  NextMessageRequest,
+  QuestionEvaluationType,
+  SessionEvaluationRequest,
+  StudentAnsweredResponse,
+  StudentResultsResponse,
+  StudentScoresType,
+} from "./types";
 
 //finds the question with current key
 const getTheQuestionByKey = (quiz: Quiz, key: number): Question | null => {
@@ -109,6 +45,8 @@ const getTheQuestionByKey = (quiz: Quiz, key: number): Question | null => {
 let stompClient;
 
 //This component handle teacher's view when he starts a quiz
+// I have had a lot of troubles with stale props in onMessageReceived callback here.
+// The solution is to create refs of the variables I need in their current state in the callback
 const StartQuiz = (props) => {
   const quiz: Quiz = props.location.state;
 
@@ -137,8 +75,10 @@ const StartQuiz = (props) => {
   );
   //Holds info about how many students answered to current tested question out of how many
   const [studentsAnsweredInfo, setStudentsAnsweredInfo] = useState<
-    StudentAnsweredType | undefined
+    StudentAnsweredResponse | undefined
   >(undefined);
+
+  const amountOfStudents = useRef(0);
   //In current implementation when user closes the page, the function which sends the request to end the session is called.
   //This is unnecessary at the end of the quiz, this state helps to determine whether the request should be called or not
   const quizAlreadyEnded = useRef(false);
@@ -161,45 +101,87 @@ const StartQuiz = (props) => {
     stompClient.send("/ws/createsession", {}, JSON.stringify(quizIdToSend));
   };
 
+  const requestStudentResults = () => {
+    const getStudentResultsRequest: SessionEvaluationRequest = {
+      sessionId: sessionIdRef.current,
+    };
+    stompClient.send(
+      "/ws/getStudentResults",
+      {},
+      JSON.stringify(getStudentResultsRequest)
+    );
+  };
+
+  const handleQuestionEvaluation = (
+    questionEvaluation: QuestionEvaluationType
+  ) => {
+    if (questionEvaluation.questionKey === quiz.questions.length) {
+      requestStudentResults();
+    }
+    setCurrentQuestionEvaluation(questionEvaluation);
+    setCurrentLayout(LayoutType.ShowEvaluation);
+    setStudentsAnsweredInfo((prevState) => {
+      //BEWARE, PREV STATE IS ACTUALLY THE INITIAL STATE HERE BECAUSE OF THE CALLBACK SNAPSHOT
+      return {
+        ...prevState,
+        amountOfAnswers: 0,
+      } as StudentAnsweredResponse;
+    });
+  };
+
+  const handleCreateSessionResponse = (
+    createSessionResponse: CreateSessionMessageResponse
+  ) => {
+    setSessionId(createSessionResponse.sessionId);
+    sessionIdRef.current = createSessionResponse.sessionId;
+  };
+
+  const handleNewStudentInSession = (
+    newStudentInSession: NewStudentMessageResponse
+  ) => {
+    amountOfStudents.current = amountOfStudents.current + 1;
+    setUsers((currUsers) => {
+      return [...currUsers, newStudentInSession.name];
+    });
+  };
+
+  const handleStudentResultsResponse = (
+    studentResults: StudentResultsResponse
+  ) => {
+    setStudentScores(studentResults.studentScores);
+  };
+
+  const handleStudentsAnsweredResponse = (
+    studentsAnsweredInfo: StudentAnsweredResponse
+  ) => {
+    setStudentsAnsweredInfo(studentsAnsweredInfo);
+    amountOfStudents.current = studentsAnsweredInfo.amountOfStudents;
+  };
+
   //First it is decided which type of message was received with property messageType. Then the message is properly handled
   const onMessageReceived = (payload) => {
     const payloadData = JSON.parse(payload.body);
     switch (payloadData.messageType) {
       //Response to create new session request, the session id is in the response
       case MessageType.CreateSessionResponse:
-        const createSessionResponse: CreateSessionMessageResponse = payloadData;
-        setSessionId(createSessionResponse.sessionId);
-        sessionIdRef.current = createSessionResponse.sessionId;
+        handleCreateSessionResponse(
+          payloadData as CreateSessionMessageResponse
+        );
         break;
       //The message from the server with the new user that connected to the session
       case MessageType.NewStudentInSession:
-        const newStudentInSession: NewStudentMessageResponse = payloadData;
-        setUsers((currUsers) => {
-          const arr = [...currUsers];
-          arr.push(newStudentInSession.name);
-          return arr;
-        });
+        handleNewStudentInSession(payloadData as NewStudentMessageResponse);
         break;
       //The server returns the evaluation of the current question
       case MessageType.QuestionEvaluation:
-        const questionEvaluation: QuestionEvaluationType = payloadData;
-        setCurrentQuestionEvaluation(questionEvaluation);
-        setCurrentLayout(LayoutType.ShowEvaluation);
-        setStudentsAnsweredInfo((prevState) => {
-          return {
-            amountOfStudents: prevState ? prevState.amountOfStudents : 0,
-            amountOfAnswers: 0,
-          };
-        });
+        handleQuestionEvaluation(payloadData as QuestionEvaluationType);
         break;
       //The server returns results of the students in the quiz
       case MessageType.StudentResults:
-        const studentResults: StudentResultsType = payloadData;
-        setStudentScores(studentResults.studentScores);
+        handleStudentResultsResponse(payloadData as StudentResultsResponse);
         break;
       case MessageType.StudentAnswered:
-        const studentAnsweredInfo: StudentAnsweredType = payloadData;
-        setStudentsAnsweredInfo(studentAnsweredInfo);
+        handleStudentsAnsweredResponse(payloadData as StudentAnsweredResponse);
         break;
     }
   };
@@ -244,24 +226,11 @@ const StartQuiz = (props) => {
     return () => {
       window.removeEventListener("beforeunload", alertUser);
       sendRequestToEndTheQuiz(EndSessionReason.PAGELEAVE);
+      stompClient.disconnect();
     };
     // disable eslint because of onConnected, tried to wrap it in useCallback but didn't work
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  //If last question ended, request the students' results
-  useEffect(() => {
-    if (lastQuestion && currentLayout === LayoutType.ShowEvaluation) {
-      const getStudentResultsRequest: SessionEvaluationRequest = {
-        sessionId: sessionId,
-      };
-      stompClient.send(
-        "/ws/getStudentResults",
-        {},
-        JSON.stringify(getStudentResultsRequest)
-      );
-    }
-  }, [lastQuestion, currentLayout, sessionId]);
 
   //Moves the quiz session to the next question.
   //Handles the button displayed on the question evaluation page and on the start page before the quiz starts
@@ -439,9 +408,7 @@ const StartQuiz = (props) => {
                     ? studentsAnsweredInfo.amountOfAnswers
                     : 0}{" "}
                   /&nbsp;
-                  {studentsAnsweredInfo
-                    ? studentsAnsweredInfo.amountOfStudents
-                    : users.length}
+                  {amountOfStudents.current}
                 </Typography>
               </Grid>
             </Grid>
