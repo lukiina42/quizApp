@@ -4,12 +4,11 @@ import AddBoxRoundedIcon from "@mui/icons-material/AddBoxRounded";
 import Popover from "@mui/material/Popover";
 import "react-toastify/dist/ReactToastify.css";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { NewQuestionType, Quiz, ValidationStatus } from "../../../common/types";
-import { QuestionData } from "../CreateQuiz";
+import { NewQuestionType, Quiz } from "../../../common/types";
+import { QuestionData } from "../types/index";
 
 interface SidePanelProps {
   createNewQuizQuestion: (key: number) => any; //TODO should be Question
-  validate: () => ValidationStatus;
   currentQuiz: Quiz;
   currentQuestionData: QuestionData;
   changeQuestion: (key: number) => void;

@@ -5,51 +5,19 @@ import SidePanel from "./sidePanel/SidePanel";
 import QuestionCreator from "./questionParameters/QuestionCreate";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {
-  LanguageType,
-  QuizAnswers,
-  ValidationStatus,
-  UserInterface,
-} from "../../common/types";
+import { LanguageType, QuizAnswers, UserInterface } from "../../common/types";
 import { Quiz } from "../../common/types";
-import { countBreakLines, createNewQuizQuestion } from "./helperMethods/index";
+import {
+  countBreakLines,
+  createNewQuizQuestion,
+  createQuestionFromStates,
+  toastSettings,
+  validateQuestionInput,
+} from "./helperMethods/index";
 import { mergeSort } from "../helperMethods/index";
 import { useUser } from "../../context/UserContext";
-
-interface CurrentAndNextQuestion {
-  key: number;
-  type: string;
-}
-
-export enum CurrentOperationInQuestion {
-  SAVE = "SAVE",
-  DELETE = "DELETE",
-}
-
-export interface QuestionParams {
-  currentOperation: CurrentOperationInQuestion;
-  currentQuestion: CurrentAndNextQuestion;
-  nextQuestion: CurrentAndNextQuestion;
-}
-
-export interface QuestionData {
-  questionKey: number;
-  questionName: string;
-  questionText: string;
-  questionLanguage: LanguageType;
-  questionType: string;
-}
-
-//default settings of the notifications, stored in const to prevent code repeating, using spred operator instead
-const toastSettings = {
-  position: "top-right" as const,
-  autoClose: 7000,
-  hideProgressBar: false,
-  closeOnClick: true,
-  pauseOnHover: true,
-  draggable: true,
-  progress: undefined,
-};
+import { QuestionData } from "./types/index";
+import { saveQuiz } from "../../api/quizApi";
 
 //The parent component in which the user creates or edits the quiz. It has 2 child components: side panel
 // where user can switch between the questions and questionCreator when user can set the parameters of the question
@@ -160,60 +128,12 @@ const CreateQuiz = (props) => {
     });
   };
 
-  //validates current question
-  //TODOOOOOOOOO QUESTIONEDITREFACTOR
-  function validate(): ValidationStatus {
-    let emptyAnswerValues = 0;
-    if (!currentQuestionData.questionName) {
-      return ValidationStatus.NAMEOFQUESTION;
-    }
-    //count empty answers
-    Object.entries(quizAnswers).forEach(([, answer]) => {
-      if (answer.value === "") {
-        emptyAnswerValues += 1;
-      }
-    });
-
-    if (emptyAnswerValues > 2) {
-      return ValidationStatus.TWOANSWERS;
-    }
-    return ValidationStatus.OK;
-  }
-
   //Saves the question with the current values -> states or values of text fields are used
   const saveTheQuestion = (finalSave: boolean): void => {
-    const updatedQuestion =
-      //currentQuestionData.questionType === NewQuestionType.QUIZ //TODO add Question type here to newQuestion
-      {
-        key: currentQuestionData.questionKey,
-        questionType: currentQuestionData.questionType,
-        name: currentQuestionData.questionName,
-        question: {
-          answerType: "QUIZ" as "QUIZ",
-          value: currentQuestionData.questionText,
-          language: currentQuestionData.questionLanguage,
-        },
-        topLeftAnswer: {
-          answerType: "QUIZ" as "QUIZ",
-          value: quizAnswers.topLeftAnswer.value,
-          isCorrect: quizAnswers.topLeftAnswer.isCorrect,
-        },
-        topRightAnswer: {
-          answerType: "QUIZ" as "QUIZ",
-          value: quizAnswers.topRightAnswer.value,
-          isCorrect: quizAnswers.topRightAnswer.isCorrect,
-        },
-        bottomLeftAnswer: {
-          answerType: "QUIZ" as "QUIZ",
-          value: quizAnswers.bottomLeftAnswer.value,
-          isCorrect: quizAnswers.bottomLeftAnswer.isCorrect,
-        },
-        bottomRightAnswer: {
-          answerType: "QUIZ" as "QUIZ",
-          value: quizAnswers.bottomRightAnswer.value,
-          isCorrect: quizAnswers.bottomRightAnswer.isCorrect,
-        },
-      };
+    const updatedQuestion = createQuestionFromStates(
+      currentQuestionData,
+      quizAnswers
+    );
     const updatedQuestionsFromQuiz = [...currentQuiz.questions];
     updatedQuestionsFromQuiz[currentQuestionData.questionKey - 1] =
       updatedQuestion;
@@ -239,7 +159,7 @@ const CreateQuiz = (props) => {
       //don't do anything if current question is clicked
       return;
     }
-    const status = validate();
+    const status = validateQuestionInput(currentQuestionData, quizAnswers);
     if (status !== "OK") {
       toast.warn(status, {
         ...toastSettings,
@@ -275,7 +195,7 @@ const CreateQuiz = (props) => {
   //defines what should happen if user creates new question => create new empty question and
   //save the current one in QuestionCreator.js using the questionParams state
   const handleNewQuestionClick = (event): void => {
-    const status = validate();
+    const status = validateQuestionInput(currentQuestionData, quizAnswers);
     if (status !== "OK") {
       toast.warn(status, {
         ...toastSettings,
@@ -381,7 +301,7 @@ const CreateQuiz = (props) => {
   //Saves the whole quiz
   const handleSaveQuizButton = (event): void => {
     event.preventDefault();
-    const status = validate();
+    const status = validateQuestionInput(currentQuestionData, quizAnswers);
     if (status !== "OK") {
       toast.warn(status, {
         position: "top-right",
@@ -400,24 +320,9 @@ const CreateQuiz = (props) => {
       id: currentQuiz.id === 0 ? null : currentQuiz.id,
       questions: currentQuizRef.current.questions,
     };
-    console.log("body sent to be", bodyToSave);
-    debugger;
-    fetch(
-      process.env.REACT_APP_FETCH_HOST + "/betterKahoot/quiz/" + currentUser.id,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(bodyToSave), // body data type must match "Content-Type" header
-      }
-    )
-      .then((response) => {
-        if (response.status === 201) {
-          history.push("/");
-        } else {
-          throw new Error(response.status.toString());
-        }
+    saveQuiz(bodyToSave, currentUser.id)
+      .then(() => {
+        history.push("/");
       })
       .catch((error) => console.log(error));
   };
@@ -462,7 +367,6 @@ const CreateQuiz = (props) => {
           }}
         >
           <SidePanel
-            validate={validate}
             currentQuiz={currentQuiz}
             createNewQuizQuestion={createNewQuizQuestion}
             currentQuestionData={currentQuestionData}

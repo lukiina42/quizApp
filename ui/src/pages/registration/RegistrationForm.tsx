@@ -6,6 +6,7 @@ import { useUserUpdate, UserStatus } from "../../context/UserContext";
 import { UserInterface } from "../../common/types";
 import { useHistory } from "react-router-dom";
 import { HashLoader } from "react-spinners";
+import { getEmailExists } from "../../api/userApi";
 
 //custom styling
 const useStyles = makeStyles((theme) => ({
@@ -30,7 +31,7 @@ const RegistrationForm = () => {
   //when user registers, move him to the home page
   const changeUser = useUserUpdate();
 
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
   //determines which fields were touched
   const touchedInitial = {
@@ -153,7 +154,7 @@ const RegistrationForm = () => {
       email: registrationData.email,
       password: registrationData.password,
     };
-    setIsLoading(true)
+    setIsLoading(true);
     fetch(process.env.REACT_APP_FETCH_HOST + "/betterKahoot/users", {
       method: "POST",
       headers: {
@@ -183,12 +184,15 @@ const RegistrationForm = () => {
 
   //Determines whether the email user typed is already in the database
   function emailExists(email: string) {
-    return fetch(process.env.REACT_APP_FETCH_HOST + "/betterKahoot/users/" + email, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
+    return fetch(
+      process.env.REACT_APP_FETCH_HOST + "/betterKahoot/users/" + email,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
       .then((response) => response.json())
       .then((data) => data)
       .catch((error) => console.log(error));
@@ -257,9 +261,9 @@ const RegistrationForm = () => {
             />
           </Grid>
           <Grid item xs={3}>
-            {isLoading ? 
+            {isLoading ? (
               <HashLoader loading={true} size={50} color={"#7D93FF"} />
-              : 
+            ) : (
               <Button
                 color="primary"
                 variant="contained"
@@ -273,10 +277,10 @@ const RegistrationForm = () => {
               >
                 Submit
               </Button>
-            }
+            )}
           </Grid>
           <Grid item xs={3}>
-            {!isLoading && <Link to="/login">Already have an account?</Link> }
+            {!isLoading && <Link to="/login">Already have an account?</Link>}
           </Grid>
         </Grid>
       </form>

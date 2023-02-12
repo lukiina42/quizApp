@@ -33,5 +33,5 @@
     "jest",
     "src/setupTests.ts"
   ],
-  "types": ["typePatches"]
+  "types": ["typePatches", "node"]
 }

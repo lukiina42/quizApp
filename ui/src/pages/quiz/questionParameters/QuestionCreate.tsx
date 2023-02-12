@@ -9,7 +9,7 @@ import FormLabel from "@mui/material/FormLabel";
 import Answers from "./answers/Answers";
 import "react-toastify/dist/ReactToastify.css";
 import { LanguageType, QuizAnswers } from "../../../common/types";
-import { QuestionData } from "../CreateQuiz";
+import { QuestionData } from "../types";
 
 const useStyles = makeStyles((theme) => ({
   bottomButtons: {
