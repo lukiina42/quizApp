@@ -23,7 +23,7 @@ export interface Question {
 
 //The quiz, contains array of questions and name with id
 export interface Quiz {
-  id: number;
+  id: number | null;
   name: string;
   questions: Array<Question>;
 }
@@ -68,10 +68,4 @@ export interface UserInterface {
   id: number;
   email: string;
   status: string;
-}
-
-export enum ValidationStatus {
-  OK = "OK",
-  TWOANSWERS = "At least 2 answers should be filled",
-  NAMEOFQUESTION = "Name of the question is required",
 }

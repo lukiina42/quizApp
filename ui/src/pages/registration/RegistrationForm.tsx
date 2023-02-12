@@ -6,6 +6,9 @@ import { useUserUpdate, UserStatus } from "../../context/UserContext";
 import { UserInterface } from "../../common/types";
 import { useHistory } from "react-router-dom";
 import { HashLoader } from "react-spinners";
+import { getEmailExists, registerUser } from "../../api/userApi";
+import { useQuery } from "react-query";
+import { useMutation } from "react-query";
 
 //custom styling
 const useStyles = makeStyles((theme) => ({
@@ -30,7 +33,7 @@ const RegistrationForm = () => {
   //when user registers, move him to the home page
   const changeUser = useUserUpdate();
 
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
   //determines which fields were touched
   const touchedInitial = {
@@ -54,6 +57,28 @@ const RegistrationForm = () => {
   //holds errors
   const [errors, setErrors] = useState(initialData);
 
+  const { data: emailUsed, refetch } = useQuery(
+    ["getEmail", { email: registrationData.email }],
+    //@ts-ignore
+    getEmailExists,
+    {
+      enabled: registrationData.email !== "",
+    }
+  );
+
+  const signInMutation = useMutation(registerUser, {
+    onSuccess: (responseData) => {
+      const loggedUser: UserInterface = {
+        id: parseInt(responseData),
+        email: registrationData.email,
+        status: UserStatus.Logged,
+      };
+      //@ts-ignore
+      changeUser(loggedUser);
+      history.push("/");
+    },
+  });
+
   //determines whether the string contains capital letter
   function isUpper(str: string) {
     const pattern = new RegExp("^(?=.*[A-Z]).+$");
@@ -62,61 +87,55 @@ const RegistrationForm = () => {
 
   //Determine wrong inputs of the user and set the errors if necessary
   useEffect(() => {
-    async function checkErrors() {
-      let error = "";
-      switch (touched.lastTouched) {
-        case "email":
-          if (touched.email) {
-            if (!registrationData.email) {
-              error = "Email is required";
-            } else if (registrationData.email.length < 3) {
-              error = "Email should contain at least 3 characters";
-            } else if (!registrationData.email.includes("@")) {
-              error = "Email should contain @ symbol";
-            } else if (!registrationData.email.includes(".")) {
-              error = "Email should contain highest order domain";
-            } else if (await emailExists(registrationData.email)) {
-              error = "This email is already used";
-            }
-            setErrors((currErrors) => {
-              return { ...currErrors, email: error };
-            });
+    let error = "";
+    switch (touched.lastTouched) {
+      case "email":
+        if (touched.email) {
+          if (!registrationData.email) {
+            error = "Email is required";
+          } else if (registrationData.email.length < 3) {
+            error = "Email should contain at least 3 characters";
+          } else if (!registrationData.email.includes("@")) {
+            error = "Email should contain @ symbol";
+          } else if (!registrationData.email.includes(".")) {
+            error = "Email should contain highest order domain";
           }
-          break;
-        case "password":
-          if (touched.password) {
-            if (!registrationData.password) {
-              error = "Password is required";
-            } else if (registrationData.password.length < 5) {
-              error = "Password should contain at least 5 characters";
-            } else if (!isUpper(registrationData.password)) {
-              error = "Password should contain a capital letter";
-            }
-            setErrors((currErrors) => {
-              return { ...currErrors, password: error };
-            });
+          setErrors((currErrors) => {
+            return { ...currErrors, email: error };
+          });
+        }
+        break;
+      case "password":
+        if (touched.password) {
+          if (!registrationData.password) {
+            error = "Password is required";
+          } else if (registrationData.password.length < 5) {
+            error = "Password should contain at least 5 characters";
+          } else if (!isUpper(registrationData.password)) {
+            error = "Password should contain a capital letter";
           }
-          break;
-        case "passwordAgain":
-          if (touched.passwordAgain) {
-            if (
-              registrationData.password.localeCompare(
-                registrationData.passwordAgain
-              ) !== 0
-            ) {
-              error = "Passwords must match";
-            }
-            setErrors((currErrors) => {
-              return { ...currErrors, passwordAgain: error };
-            });
+          setErrors((currErrors) => {
+            return { ...currErrors, password: error };
+          });
+        }
+        break;
+      case "passwordAgain":
+        if (touched.passwordAgain) {
+          if (
+            registrationData.password.localeCompare(
+              registrationData.passwordAgain
+            ) !== 0
+          ) {
+            error = "Passwords must match";
           }
-          break;
-        default:
-          break;
-      }
+          setErrors((currErrors) => {
+            return { ...currErrors, passwordAgain: error };
+          });
+        }
+        break;
+      default:
+        break;
     }
-
-    checkErrors();
   }, [registrationData, touched]);
 
   //handles inputs in the form from the user
@@ -153,45 +172,8 @@ const RegistrationForm = () => {
       email: registrationData.email,
       password: registrationData.password,
     };
-    setIsLoading(true)
-    fetch(process.env.REACT_APP_FETCH_HOST + "/betterKahoot/users", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(dataToSend), // body data type must match "Content-Type" header
-    })
-      .then((response) => {
-        if (response.status !== 201) {
-          throw new Error("Something went wrong, sorry about that");
-        }
-        return response.json();
-      })
-      .then((responseData) => {
-        const loggedUser: UserInterface = {
-          id: parseInt(responseData),
-          email: registrationData.email,
-          status: UserStatus.Logged,
-        };
-        //@ts-ignore
-        changeUser(loggedUser);
-        history.push("/");
-      })
-      .catch((error) => console.log(error))
-      .finally(() => setIsLoading(false));
-  }
-
-  //Determines whether the email user typed is already in the database
-  function emailExists(email: string) {
-    return fetch(process.env.REACT_APP_FETCH_HOST + "/betterKahoot/users/" + email, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => data)
-      .catch((error) => console.log(error));
+    setIsLoading(true);
+    signInMutation.mutate(dataToSend);
   }
 
   return (
@@ -209,14 +191,21 @@ const RegistrationForm = () => {
           </Grid>
           <Grid item xs={3}>
             <TextField
-              error={errors.email !== "" && touched.email}
+              error={touched.email && (errors.email !== "" || emailUsed)}
               id="email"
               label={
-                errors.email !== "" && touched.email ? errors.email : "Email"
+                touched.email && (errors.email !== "" || emailUsed)
+                  ? errors.email
+                    ? errors.email
+                    : "Email is used"
+                  : "Email"
               }
               autoFocus
               size="small"
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e);
+                refetch();
+              }}
               onBlur={handleBlur}
               value={registrationData.email}
               sx={{ width: 300 }}
@@ -257,9 +246,9 @@ const RegistrationForm = () => {
             />
           </Grid>
           <Grid item xs={3}>
-            {isLoading ? 
+            {isLoading ? (
               <HashLoader loading={true} size={50} color={"#7D93FF"} />
-              : 
+            ) : (
               <Button
                 color="primary"
                 variant="contained"
@@ -273,10 +262,10 @@ const RegistrationForm = () => {
               >
                 Submit
               </Button>
-            }
+            )}
           </Grid>
           <Grid item xs={3}>
-            {!isLoading && <Link to="/login">Already have an account?</Link> }
+            {!isLoading && <Link to="/login">Already have an account?</Link>}
           </Grid>
         </Grid>
       </form>

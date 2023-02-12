@@ -243,6 +243,8 @@ const JoinQuiz = () => {
       //reset event handler of the window
       window.removeEventListener("beforeunload", alertUser);
     };
+    // disable eslint because of onConnected, tried to wrap it in useCallback but didn't work
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   //Validates input from the user when he is joining session. If needed, user is notified with Toast notifications
