@@ -11,7 +11,7 @@ import {
 } from "recharts";
 
 import "./index.css";
-import { QuestionEvaluationType } from "../StartQuiz";
+import { QuestionEvaluationType } from "../types";
 import { Question, LanguageType } from "../../../../common/types";
 import CustomCodeEditor from "../../../quiz/questionParameters/codeEditor/CustomCodeEditor";
 import CustomTooltip from "./CustomTooltip";
@@ -81,7 +81,11 @@ const QuestionEvaluation = ({
         </div>
         <div className="editorWrapper">
           <CustomCodeEditor
-            language={currentQuestion ? currentQuestion.question.language : LanguageType.C}
+            language={
+              currentQuestion
+                ? currentQuestion.question.language
+                : LanguageType.C
+            }
             value={currentQuestion ? currentQuestion.question.value : ""}
           />
         </div>

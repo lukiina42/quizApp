@@ -7,60 +7,35 @@ import { ToastContainer } from "react-toastify";
 import { toast } from "react-toastify";
 import { Quiz, initialQuizAnswers, QuizAnswers } from "../../../common/types";
 import { Prompt } from "react-router";
-
+import {
+  JoinSessionResponse,
+  LayoutType,
+  NextQuestionMessage,
+  QuestionAnswer,
+  responseStatus,
+  responseType,
+  ResultMessage,
+} from "./types";
 import "./index.css";
 import JoinForm from "./joinForm/JoinForm";
 import AnswerToQuestion from "./answerToQuestion/AnswerToQuestion";
 import { mergeSort } from "../../helperMethods";
 
-interface ResponseMessage {
-  responseType: string;
-}
-
-interface JoinSessionResponse extends ResponseMessage {
-  quiz: Quiz;
-  responseStatus: string;
-}
-
-interface nextQuestionMessage extends ResponseMessage {
-  questionKey: number;
-}
-
-interface resultMessage extends ResponseMessage {
-  correctAnswers: number;
-}
-
-//When student answers, the data are sent in this format to the server
-interface QuestionAnswer {
-  sessionId: number;
-  questionKey: number;
-  topLeftAnswer: boolean;
-  topRightAnswer: boolean;
-  bottomLeftAnswer: boolean;
-  bottomRightAnswer: boolean;
-}
-
-//Response status to join session request
-const responseStatus = {
-  CONNECTED: "CONNECTED",
-  SESSIONNOTFOUND: "NOTFOUND",
-  NAMEEXISTS: "NAMEEXISTS",
-};
-
-//Response types, used to determine which type of message came from the server
-const responseType = {
-  JOINSESSION: "JOINSESSION",
-  NEXTQUESTION: "NEXTQUESTION",
-  ENDSESSION: "ENDSESSION",
-  SENDRESULT: "SENDRESULT",
-  QUESTIONEND: "QUESTIONEND",
-};
-
-//Layout type, user is either joining quiz with the form, waiting for teacher's action or answering a question
-const LayoutType = {
-  JoiningQuiz: "JoiningQuiz",
-  WaitingForTeacher: "WaitingForTeacher",
-  AnsweringQuestion: "AnsweringQuestion",
+//Validates input from the user when he is joining session. If needed, user is notified with Toast notifications
+const validateInputs = (name: string, sessionId): string => {
+  if (name === "" || sessionId === "") {
+    return "Both fields should be filled";
+  }
+  if (name.length > 64) {
+    return "This name is too long, please pick a shorter one";
+  }
+  if (isNaN(sessionId)) {
+    return "Session id should be number";
+  }
+  if (sessionId.length > 5) {
+    return "Session id should have exactly 5 numbers";
+  }
+  return "OK";
 };
 
 //stomp client used to connect with the server over web socket
@@ -118,6 +93,92 @@ const JoinQuiz = () => {
     stompClient.subscribe("/user/topic/session", onMessageReceived);
   };
 
+  const handleJoinSessionMessage = (
+    joinSessionResponse: JoinSessionResponse
+  ): string => {
+    let warningMessage = "NONE";
+    switch (joinSessionResponse.responseStatus) {
+      //User just connected to the quiz with the session id, setting states that came from server
+      case responseStatus.CONNECTED:
+        const quiz = joinSessionResponse.quiz;
+        let questions = quiz.questions;
+        const newQuestions = mergeSort(questions);
+        quiz.questions = newQuestions;
+        quizRef.current = quiz;
+        setQuiz(quiz);
+        setCurrentLayout(LayoutType.WaitingForTeacher);
+        //also want to notify user from now on that he won't be able to join the session anymore
+        window.addEventListener("beforeunload", alertUser);
+        break;
+      //User tried to connect to the session, but the name already exists in it
+      case responseStatus.NAMEEXISTS:
+        warningMessage = "This name is already on the screen :(";
+        sessionId.current = 0;
+        break;
+      //The session id user typed is invalid
+      case responseStatus.SESSIONNOTFOUND:
+        warningMessage =
+          "The session with id you typed was not found, check if it is the same as on your teacher's screen";
+        sessionId.current = 0;
+        break;
+      default:
+        break;
+    }
+    return warningMessage;
+  };
+
+  const handleNextQuestionMessage = (
+    nextQuestionMessage: NextQuestionMessage
+  ): void => {
+    const nextKey = nextQuestionMessage.questionKey;
+    setCurrentAnswers((prevAnswers) => {
+      return {
+        ...prevAnswers,
+        topRightAnswer: {
+          isCorrect: false,
+          value: quizRef.current!.questions[nextKey - 1].topRightAnswer.value,
+        },
+        topLeftAnswer: {
+          isCorrect: false,
+          value: quizRef.current!.questions[nextKey - 1].topLeftAnswer.value,
+        },
+        bottomRightAnswer: {
+          isCorrect: false,
+          value:
+            quizRef.current!.questions[nextKey - 1].bottomRightAnswer.value,
+        },
+        bottomLeftAnswer: {
+          isCorrect: false,
+          value: quizRef.current!.questions[nextKey - 1].bottomLeftAnswer.value,
+        },
+      } as QuizAnswers;
+    });
+    setCurrentQuestionKey(nextKey);
+    setCurrentLayout(LayoutType.AnsweringQuestion);
+    textWhenWaiting.current = "undefined";
+  };
+
+  const handleEndSessionMessage = (): void => {
+    //set states to inital values
+    setCurrentLayout(LayoutType.JoiningQuiz);
+    setCurrentQuestionKey(0);
+    setQuiz(null);
+    setResult(null);
+    //reset event handler of the window
+    window.removeEventListener("beforeunload", alertUser);
+  };
+
+  const handleSendResultMessage = (resultMessage: ResultMessage) => {
+    setResult(resultMessage.correctAnswers);
+  };
+
+  const handleQuestionEnd = (): void => {
+    if (textWhenWaiting.current === "undefined")
+      textWhenWaiting.current = "was not";
+    setCurrentAnswers(initialQuizAnswers);
+    setCurrentLayout(LayoutType.WaitingForTeacher);
+  };
+
   //handles receiving messages from the server
   //All received messages contain field responseType. Based on that is decided how to handle the message
   const onMessageReceived = (payload): void => {
@@ -126,89 +187,25 @@ const JoinQuiz = () => {
     switch (payloadData.responseType) {
       //if user gets response to his request to join session
       case responseType.JOINSESSION:
-        const joinSessionResponse: JoinSessionResponse = payloadData;
-        switch (joinSessionResponse.responseStatus) {
-          //User just connected to the quiz with the session id, setting states that came from server
-          case responseStatus.CONNECTED:
-            const quiz = joinSessionResponse.quiz;
-            let questions = quiz.questions;
-            const newQuestions = mergeSort(questions);
-            quiz.questions = newQuestions;
-            quizRef.current = quiz;
-            setQuiz(quiz);
-            setCurrentLayout(LayoutType.WaitingForTeacher);
-            //also want to notify user from now on that he won't be able to join the session anymore
-            window.addEventListener("beforeunload", alertUser);
-            break;
-          //User tried to connect to the session, but the name already exists in it
-          case responseStatus.NAMEEXISTS:
-            warningMessage = "This name is already on the screen :(";
-            sessionId.current = 0;
-            break;
-          //The session id user typed is invalid
-          case responseStatus.SESSIONNOTFOUND:
-            warningMessage =
-              "The session with id you typed was not found, check if it is the same as on your teacher's screen";
-            sessionId.current = 0;
-            break;
-          default:
-            break;
-        }
+        warningMessage = handleJoinSessionMessage(
+          payloadData as JoinSessionResponse
+        );
         break;
       //if user gets message to swap to the next question
       case responseType.NEXTQUESTION:
-        const nextQuestionMessage: nextQuestionMessage = payloadData;
-        const nextKey = nextQuestionMessage.questionKey;
-        setCurrentAnswers((prevAnswers) => {
-          return {
-            ...prevAnswers,
-            topRightAnswer: {
-              isCorrect: false,
-              value:
-                quizRef.current!.questions[nextKey - 1].topRightAnswer.value,
-            },
-            topLeftAnswer: {
-              isCorrect: false,
-              value:
-                quizRef.current!.questions[nextKey - 1].topLeftAnswer.value,
-            },
-            bottomRightAnswer: {
-              isCorrect: false,
-              value:
-                quizRef.current!.questions[nextKey - 1].bottomRightAnswer.value,
-            },
-            bottomLeftAnswer: {
-              isCorrect: false,
-              value:
-                quizRef.current!.questions[nextKey - 1].bottomLeftAnswer.value,
-            },
-          } as QuizAnswers;
-        });
-        setCurrentQuestionKey(nextKey);
-        setCurrentLayout(LayoutType.AnsweringQuestion);
-        textWhenWaiting.current = "undefined";
+        handleNextQuestionMessage(payloadData as NextQuestionMessage);
         break;
       //the session just ended
       case responseType.ENDSESSION:
-        //set states to inital values
-        setCurrentLayout(LayoutType.JoiningQuiz);
-        setCurrentQuestionKey(0);
-        setQuiz(null);
-        setResult(null);
-        //reset event handler of the window
-        window.removeEventListener("beforeunload", alertUser);
+        handleEndSessionMessage();
         break;
       //User gets their result at the end of the quiz
       case responseType.SENDRESULT:
-        const result: resultMessage = payloadData;
-        setResult(result.correctAnswers);
+        handleSendResultMessage(payloadData as ResultMessage);
         break;
       //The question just ended, in case the user hasn't answered yet, he cannot anymore
       case responseType.QUESTIONEND:
-        if (textWhenWaiting.current === "undefined")
-          textWhenWaiting.current = "was not";
-        setCurrentAnswers(initialQuizAnswers);
-        setCurrentLayout(LayoutType.WaitingForTeacher);
+        handleQuestionEnd();
         break;
       default:
         break;
@@ -246,23 +243,6 @@ const JoinQuiz = () => {
     // disable eslint because of onConnected, tried to wrap it in useCallback but didn't work
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  //Validates input from the user when he is joining session. If needed, user is notified with Toast notifications
-  const validateInputs = (name: string, sessionId): string => {
-    if (name === "" || sessionId === "") {
-      return "Both fields should be filled";
-    }
-    if (name.length > 64) {
-      return "This name is too long, please pick a shorter one";
-    }
-    if (isNaN(sessionId)) {
-      return "Session id should be number";
-    }
-    if (sessionId.length > 5) {
-      return "Session id should have exactly 5 numbers";
-    }
-    return "OK";
-  };
 
   //handles user joinng the session. Checks the inputs and sends the request to join the session to server
   const handleJoinQuizButton = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -312,6 +292,24 @@ const JoinQuiz = () => {
     setCurrentLayout(LayoutType.WaitingForTeacher);
   };
 
+  const firstPauseScreenMessage =
+    currentQuestionKey === 0
+      ? "You should see yourself on the screen!"
+      : result !== null
+      ? "You got " +
+        result +
+        "/" +
+        quiz?.questions.length +
+        " answers correct. Thanks for playing!"
+      : "Your answer " + textWhenWaiting.current + " recorded";
+
+  const secondPauseScreenMessage =
+    currentQuestionKey === 0
+      ? "Wait for your teacher to start the quiz."
+      : result !== null
+      ? "You can now leave this page."
+      : "Wait for your teacher to activate next question.";
+
   return (
     <>
       {/* Prompt which should be displayed to user when he leaves the page */}
@@ -347,25 +345,9 @@ const JoinQuiz = () => {
           sx={{ height: "calc(100vh - 45px)" }}
         >
           <Grid item xs={2}>
-            <Typography variant="h5">
-              {currentQuestionKey === 0
-                ? "You should see yourself on the screen!"
-                : result !== null
-                ? "You got " +
-                  result +
-                  "/" +
-                  quiz?.questions.length +
-                  " answers correct. Thanks for playing!"
-                : "Your answer " + textWhenWaiting.current + " recorded"}
-            </Typography>
+            <Typography variant="h5">{firstPauseScreenMessage}</Typography>
           </Grid>
-          <Typography variant="h5">
-            {currentQuestionKey === 0
-              ? "Wait for your teacher to start the quiz."
-              : result !== null
-              ? "You can now leave this page."
-              : "Wait for your teacher to activate next question."}
-          </Typography>
+          <Typography variant="h5">{secondPauseScreenMessage}</Typography>
         </Grid>
       )}
       {currentLayout === LayoutType.AnsweringQuestion && (

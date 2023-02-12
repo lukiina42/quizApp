@@ -9,7 +9,6 @@ import StartQuiz from "./quizSession/teacher/StartQuiz";
 import JoinQuiz from "./quizSession/student/JoinQuiz";
 import { UserProvider } from "../context/UserContext";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { ReactQueryDevtools } from "react-query/devtools";
 
 const queryClient = new QueryClient();
 
@@ -31,7 +30,6 @@ function App() {
             <Route component={PageNotFound} />
           </Switch>
         </UserProvider>
-        <ReactQueryDevtools initialIsOpen={true} />
       </QueryClientProvider>
     </>
   );
