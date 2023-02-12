@@ -23,7 +23,7 @@ export interface Question {
 
 //The quiz, contains array of questions and name with id
 export interface Quiz {
-  id: number;
+  id: number | null;
   name: string;
   questions: Array<Question>;
 }

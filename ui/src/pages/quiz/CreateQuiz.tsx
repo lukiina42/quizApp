@@ -18,6 +18,7 @@ import { mergeSort } from "../helperMethods/index";
 import { useUser } from "../../context/UserContext";
 import { QuestionData } from "./types/index";
 import { saveQuiz } from "../../api/quizApi";
+import { useMutation } from "react-query";
 
 //The parent component in which the user creates or edits the quiz. It has 2 child components: side panel
 // where user can switch between the questions and questionCreator when user can set the parameters of the question
@@ -66,6 +67,12 @@ const CreateQuiz = (props) => {
     topRightAnswer: currentQuizRef.current.questions[0].topRightAnswer,
     bottomLeftAnswer: currentQuizRef.current.questions[0].bottomLeftAnswer,
     bottomRightAnswer: currentQuizRef.current.questions[0].bottomRightAnswer,
+  });
+
+  const saveQuizMutation = useMutation(saveQuiz, {
+    onSuccess: () => {
+      history.push("/");
+    },
   });
 
   const handleLanguageChange = (event) =>
@@ -320,11 +327,11 @@ const CreateQuiz = (props) => {
       id: currentQuiz.id === 0 ? null : currentQuiz.id,
       questions: currentQuizRef.current.questions,
     };
-    saveQuiz(bodyToSave, currentUser.id)
-      .then(() => {
-        history.push("/");
-      })
-      .catch((error) => console.log(error));
+
+    saveQuizMutation.mutate({
+      bodyToSave,
+      userId: currentUser.id,
+    });
   };
 
   //Handles exit button, moves user to the home page

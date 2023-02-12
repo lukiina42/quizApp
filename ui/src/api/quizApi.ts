@@ -1,18 +1,19 @@
+import { Quiz } from "../common/types";
 import {
   handleError,
   handleResponseWithJson,
   handleResponseWithoutJson,
 } from "./apiUtils";
 
-export function saveQuiz(quiz, userId: number) {
+export function saveQuiz(variables: { bodyToSave: Quiz; userId: number }) {
   return fetch(
-    process.env.REACT_APP_FETCH_HOST + "/betterKahoot/quiz/" + userId,
+    process.env.REACT_APP_FETCH_HOST + "/betterKahoot/quiz/" + variables.userId,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(quiz), // body data type must match "Content-Type" header
+      body: JSON.stringify(variables.bodyToSave), // body data type must match "Content-Type" header
     }
   )
     .then((response) => handleResponseWithoutJson(response, 201))
