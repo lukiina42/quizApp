@@ -1,39 +1,27 @@
-import {
-  Grid,
-  Typography,
-  TextField,
-  Menu,
-  MenuItem,
-  InputAdornment,
-} from "@mui/material";
-import SettingsIcon from "@mui/icons-material/Settings";
-import { NavLink } from "react-router-dom";
+import { Grid, Typography } from "@mui/material";
 
 import { useAnchor } from "./useAnchor/";
 import { Quiz, UserInterface } from "../../../common/types";
 import { HashLoader } from "react-spinners";
 import { deleteQuiz, loadAllQuizes } from "../../../api/quizApi";
 import { useQuery, useQueryClient, useMutation } from "react-query";
+import { useDispatch } from "react-redux";
+import { useHistory } from "react-router-dom";
+import QuizList from "./quizList/QuizList";
+import { quizChanged } from "../../../redux/features/currentQuizSlice";
 
 interface LoggedUserHomeProps {
   currentUser: UserInterface;
 }
 
-//The method used to find quiz by id in current quizzes
-const findQuizById = (id: number, quizes: Quiz[]): Quiz => {
-  let quizToReturn;
-  quizes.forEach((quiz) => {
-    if (quiz.id === id) {
-      quizToReturn = quiz;
-    }
-  });
-  return quizToReturn;
-};
-
 //The home for logged in user. It displays the current user's
 //quizzes and enables him to edit, delete or start (Start testing students) them
 export default function LoggedUserHome({ currentUser }: LoggedUserHomeProps) {
   const { anchor, open, handleOptionsOpen, handleClose } = useAnchor();
+
+  const dispatch = useDispatch();
+
+  const history = useHistory();
 
   const queryClient = useQueryClient();
 
@@ -51,6 +39,16 @@ export default function LoggedUserHome({ currentUser }: LoggedUserHomeProps) {
       handleClose();
     },
   });
+
+  const handleDeleteQuiz = (id: number) => {
+    deleteQuizMutation.mutate(anchor.id);
+  };
+
+  const handleDispatchQuizChange = (quiz: Quiz) => {
+    dispatch(quizChanged(quiz));
+    handleClose();
+    history.push("/quiz", { name: quiz.name });
+  };
 
   if (error) throw error;
 
@@ -99,87 +97,15 @@ export default function LoggedUserHome({ currentUser }: LoggedUserHomeProps) {
                   <Grid item>
                     <Typography fontWeight={"bold"}>Your quizzes:</Typography>
                   </Grid>
-                  {loadedQuizes.map((quiz) => (
-                    <Grid item key={quiz.id} id={quiz.id?.toString()}>
-                      <TextField
-                        id="demo-positioned-button"
-                        disabled
-                        value={quiz.name}
-                        aria-controls={
-                          open ? "demo-positioned-menu" : undefined
-                        }
-                        aria-haspopup="true"
-                        aria-expanded={open ? "true" : undefined}
-                        onClick={(event) => handleOptionsOpen(event, quiz.id)}
-                        size="small"
-                        sx={{
-                          width: "300px",
-                          textTransform: "none",
-                          borderRadius: 0,
-                        }}
-                        InputProps={{
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <SettingsIcon
-                                onMouseEnter={(event) =>
-                                  (event.currentTarget.style.cursor = "pointer")
-                                }
-                                onMouseLeave={(event) =>
-                                  (event.currentTarget.style.cursor = "default")
-                                }
-                              />
-                            </InputAdornment>
-                          ),
-                          style: {
-                            fontWeight: "bold",
-                          },
-                        }}
-                      />
-                      <Menu
-                        id="demo-positioned-menu"
-                        aria-labelledby="demo-positioned-button"
-                        anchorEl={anchor.element}
-                        open={open}
-                        onClose={handleClose}
-                        anchorOrigin={{
-                          vertical: "center",
-                          horizontal: "right",
-                        }}
-                        transformOrigin={{
-                          vertical: "center",
-                          horizontal: "left",
-                        }}
-                      >
-                        <MenuItem
-                          component={NavLink}
-                          to={{
-                            pathname: "/quiz",
-                            state: findQuizById(anchor.id, loadedQuizes),
-                          }}
-                          onClick={handleClose}
-                        >
-                          Edit
-                        </MenuItem>
-                        <MenuItem
-                          onClick={() => {
-                            deleteQuizMutation.mutate(anchor.id);
-                          }}
-                        >
-                          Delete
-                        </MenuItem>
-                        <MenuItem
-                          component={NavLink}
-                          to={{
-                            pathname: "/startQuiz",
-                            state: findQuizById(anchor.id, loadedQuizes),
-                          }}
-                          onClick={handleClose}
-                        >
-                          Start
-                        </MenuItem>
-                      </Menu>
-                    </Grid>
-                  ))}
+                  <QuizList
+                    anchorOpen={open}
+                    handleAnchorClose={handleClose}
+                    handleAnchorOptionsOpen={handleOptionsOpen}
+                    anchor={anchor}
+                    handleDeleteQuiz={handleDeleteQuiz}
+                    quizes={loadedQuizes}
+                    handleQuizChange={handleDispatchQuizChange}
+                  />
                 </>
               )}
             </>

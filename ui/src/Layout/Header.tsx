@@ -7,6 +7,9 @@ import {
   useUserUpdate,
   initialLoggedUserState,
 } from "../context/UserContext";
+import { useDispatch } from "react-redux";
+import { quizChanged } from "../redux/features/currentQuizSlice";
+import { createNewQuizQuestion } from "../pages/quiz/helperMethods";
 
 //The header of the application.
 //It is displayed differently based on current url location in the app and whether the user is guest or logged in
@@ -17,6 +20,8 @@ export default function Header() {
   const history = useHistory();
   //Name of the quiz, which is displayed while creating the quiz
   const quizName = useRef(null);
+
+  const dispatch = useDispatch();
 
   //Current user and change user method from context
   const currentUser = useUser();
@@ -46,7 +51,15 @@ export default function Header() {
   //Handles create new quiz button, moves user to create quiz location with the name of the quiz
   const handleCreateClick = () => {
     //@ts-ignore
-    history.push("/quiz", { name: quizName.current?.value });
+    const name = quizName.current?.value;
+    dispatch(
+      quizChanged({
+        id: 0,
+        name,
+        questions: [createNewQuizQuestion(1)],
+      })
+    );
+    history.push("/quiz", { name });
     handlePopoverClose();
   };
 
@@ -57,134 +70,126 @@ export default function Header() {
     history.push("/");
   };
 
-  if((location.pathname === "/" && currentUser.status !== "Logged") ||
-  location.pathname === "/login" ||
-  location.pathname === "/registration" ||
-  location.pathname === "/startQuiz"){
-    return <></>
+  if (
+    (location.pathname === "/" && currentUser.status !== "Logged") ||
+    location.pathname === "/login" ||
+    location.pathname === "/registration" ||
+    location.pathname === "/startQuiz"
+  ) {
+    return <></>;
   }
 
   return (
-      <>
-        <header>
-          <Grid
-            container
-            direction="row"
-            spacing={0}
-            alignItems="center"
-            justifyContent="space-between"
-            sx={{
-              height: 45,
-              minHeight: 45,
-              borderBottom: 1,
-            }}
-          >
-            {/* 
-            <Link to="/">
-              <img alt="Carved Rock Fitness" src="/images/logo.png" />
-            </Link>
-          */}
-            <Grid item sx={{ paddingLeft: 2 }}>
-              {location.pathname === "/" &&
-                currentUser.status === UserStatus.Logged && (
-                  <div style={{ fontWeight: "bold" }}>
-                    {currentUser.email.split("@")[0]}
-                  </div>
-                )}
-            </Grid>
-            <Grid item>
-              {location.pathname === "/" &&
-                currentUser.status === UserStatus.Logged && (
-                  <Button
-                    color="primary"
-                    variant="contained"
-                    size="small"
-                    onClick={handlePopoverChange}
-                    sx={{ textTransform: "none" }}
-                  >
-                    Create new quiz
-                  </Button>
-                )}
-              {location.pathname === "/quiz" && (
-                <Typography sx={{ fontWeight: "bold" }}>
-                  Currently creating/updating quiz:{" "}
-                  {history.location.state.name}
-                </Typography>
-              )}
-            </Grid>
-            <Grid item sx={{ paddingRight: 2 }}>
-              {location.pathname === "/" &&
-                currentUser.status === UserStatus.Logged && (
-                  <div
-                    style={{
-                      color: "#545e6f",
-                      borderRadius: "4px",
-                      padding: 2,
-                      fontWeight: "bold",
-                      textDecoration: "underline",
-                    }}
-                    onMouseEnter={(event) =>
-                      (event.currentTarget.style.cursor = "pointer")
-                    }
-                    onMouseLeave={(event) =>
-                      (event.currentTarget.style.cursor = "default")
-                    }
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </div>
-                )}
-            </Grid>
-          </Grid>
-        </header>
-        <Popover
-          id={id}
-          open={open}
-          anchorEl={anchorEl}
-          onClose={handlePopoverClose}
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "center",
-          }}
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "center",
+    <>
+      <header>
+        <Grid
+          container
+          direction="row"
+          spacing={0}
+          alignItems="center"
+          justifyContent="space-between"
+          sx={{
+            height: 45,
+            minHeight: 45,
+            borderBottom: 1,
           }}
         >
-          <Grid
-            container
-            alignItems="center"
-            spacing={1}
-            justifyContent="flex-start"
-            sx={{ padding: 2, width: 300 }}
-          >
-            <Grid item xs={12}>
-              <TextField
-                id="theQuestion"
-                size="small"
-                inputProps={{ min: 0, style: { textAlign: "center" } }}
-                placeholder="Name of quiz"
-                autoComplete="new-password"
-                fullWidth
-                inputRef={quizName}
-              />
-            </Grid>
-            <Grid
-              item
-              xs={12}
-              sx={{ display: "flex", justifyContent: "center" }}
-            >
-              <Button
-                color="secondary"
-                variant="contained"
-                sx={{ textTransform: "none" }}
-                onClick={handleCreateClick}
-              >
-                Create
-              </Button>
-            </Grid>
+          <Grid item sx={{ paddingLeft: 2 }}>
+            {location.pathname === "/" &&
+              currentUser.status === UserStatus.Logged && (
+                <div style={{ fontWeight: "bold" }}>
+                  {currentUser.email.split("@")[0]}
+                </div>
+              )}
           </Grid>
-        </Popover>
-      </>
-  )
+          <Grid item>
+            {location.pathname === "/" &&
+              currentUser.status === UserStatus.Logged && (
+                <Button
+                  color="primary"
+                  variant="contained"
+                  size="small"
+                  onClick={handlePopoverChange}
+                  sx={{ textTransform: "none" }}
+                >
+                  Create new quiz
+                </Button>
+              )}
+            {location.pathname === "/quiz" && (
+              <Typography sx={{ fontWeight: "bold" }}>
+                Currently creating/updating quiz: {history.location.state.name}
+              </Typography>
+            )}
+          </Grid>
+          <Grid item sx={{ paddingRight: 2 }}>
+            {location.pathname === "/" &&
+              currentUser.status === UserStatus.Logged && (
+                <div
+                  style={{
+                    color: "#545e6f",
+                    borderRadius: "4px",
+                    padding: 2,
+                    fontWeight: "bold",
+                    textDecoration: "underline",
+                  }}
+                  onMouseEnter={(event) =>
+                    (event.currentTarget.style.cursor = "pointer")
+                  }
+                  onMouseLeave={(event) =>
+                    (event.currentTarget.style.cursor = "default")
+                  }
+                  onClick={handleLogout}
+                >
+                  Logout
+                </div>
+              )}
+          </Grid>
+        </Grid>
+      </header>
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handlePopoverClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "center",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "center",
+        }}
+      >
+        <Grid
+          container
+          alignItems="center"
+          spacing={1}
+          justifyContent="flex-start"
+          sx={{ padding: 2, width: 300 }}
+        >
+          <Grid item xs={12}>
+            <TextField
+              id="theQuestion"
+              size="small"
+              inputProps={{ min: 0, style: { textAlign: "center" } }}
+              placeholder="Name of quiz"
+              autoComplete="new-password"
+              fullWidth
+              inputRef={quizName}
+            />
+          </Grid>
+          <Grid item xs={12} sx={{ display: "flex", justifyContent: "center" }}>
+            <Button
+              color="secondary"
+              variant="contained"
+              sx={{ textTransform: "none" }}
+              onClick={handleCreateClick}
+            >
+              Create
+            </Button>
+          </Grid>
+        </Grid>
+      </Popover>
+    </>
+  );
 }
