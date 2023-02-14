@@ -1,11 +1,14 @@
 import React from "react";
-import { Grid, TextField, Menu, MenuItem, InputAdornment } from "@mui/material";
+import { Menu, MenuItem, Divider } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { NavLink } from "react-router-dom";
-
 import { Quiz } from "../../../../common/types";
 import { AnchorType } from "../useAnchor";
 import { findQuizById } from "../common";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import Typography from "@mui/material/Typography";
 
 interface QuizListProps {
   quizes: Quiz[];
@@ -29,82 +32,101 @@ export default function QuizList(props: QuizListProps) {
   } = props;
   return (
     <>
-      {quizes.map((quiz) => (
-        <Grid item key={quiz.id} id={quiz.id?.toString()}>
-          <TextField
-            id="demo-positioned-button"
-            disabled
-            value={quiz.name}
-            aria-controls={anchorOpen ? "demo-positioned-menu" : undefined}
-            aria-haspopup="true"
-            aria-expanded={anchorOpen ? "true" : undefined}
-            onClick={(event) =>
-              handleAnchorOptionsOpen(event, quiz.id as number)
-            }
-            size="small"
-            sx={{
-              width: "300px",
-              textTransform: "none",
-              borderRadius: 0,
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <SettingsIcon
-                    onMouseEnter={(event) =>
-                      (event.currentTarget.style.cursor = "pointer")
-                    }
-                    onMouseLeave={(event) =>
-                      (event.currentTarget.style.cursor = "default")
-                    }
-                  />
-                </InputAdornment>
-              ),
-              style: {
-                fontWeight: "bold",
-              },
-            }}
-          />
-          <Menu
-            id="demo-positioned-menu"
-            aria-labelledby="demo-positioned-button"
-            anchorEl={anchor.element}
-            open={anchorOpen}
-            onClose={handleAnchorClose}
-            anchorOrigin={{
-              vertical: "center",
-              horizontal: "right",
-            }}
-            transformOrigin={{
-              vertical: "center",
-              horizontal: "left",
-            }}
-          >
-            <MenuItem
-              onClick={() => handleQuizChange(findQuizById(anchor.id, quizes))}
-            >
-              Edit
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                handleDeleteQuiz(quiz.id as number);
+      <List sx={{ width: "100%", maxWidth: 360, bgcolor: "background.paper" }}>
+        <Divider key={"lol"} />
+        {quizes.map((quiz, key) => (
+          <React.Fragment key={quiz.id}>
+            <ListItem
+              key={quiz.id}
+              id={quiz.id!.toString()}
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "flex-start",
+                alignItems: "center",
+                transition: "0.3s ease-in",
+                ":hover": {
+                  backgroundColor: "#e0e0e0",
+                  cursor: "pointer",
+                },
               }}
+              onClick={(event) =>
+                handleAnchorOptionsOpen(event, quiz.id as number)
+              }
             >
-              Delete
-            </MenuItem>
-            <MenuItem
-              component={NavLink}
-              to={{
-                pathname: "/startQuiz",
-                state: findQuizById(anchor.id, quizes),
-              }}
-              onClick={handleAnchorClose}
-            >
-              Start
-            </MenuItem>
-          </Menu>
-        </Grid>
-      ))}
+              <ListItemText
+                primary={
+                  <Typography
+                    color={"black"}
+                    variant="h5"
+                    sx={{ fontWeight: "bold" }}
+                  >
+                    {quiz.name.toUpperCase()}
+                  </Typography>
+                }
+                secondary={
+                  <Typography
+                    sx={{ display: "inline", fontWeight: "bold" }}
+                    component="span"
+                    variant="body2"
+                    color="#87b0d4"
+                  >
+                    This is an absolute description lulw
+                  </Typography>
+                }
+              />
+              <SettingsIcon
+                color="info"
+                onMouseEnter={(event) =>
+                  (event.currentTarget.style.cursor = "pointer")
+                }
+                onMouseLeave={(event) =>
+                  (event.currentTarget.style.cursor = "default")
+                }
+              />
+            </ListItem>
+            <Divider key={-quiz.id!} />
+          </React.Fragment>
+        ))}
+      </List>
+      <Menu
+        id="demo-positioned-menu"
+        aria-labelledby="demo-positioned-button"
+        anchorEl={anchor.element}
+        open={anchorOpen}
+        onClose={handleAnchorClose}
+        anchorOrigin={{
+          vertical: "center",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "center",
+          horizontal: "left",
+        }}
+      >
+        <MenuItem
+          onClick={() => handleQuizChange(findQuizById(anchor.id, quizes))}
+        >
+          Edit
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleDeleteQuiz(anchor.id);
+          }}
+        >
+          Delete
+        </MenuItem>
+        <MenuItem
+          component={NavLink}
+          to={{
+            pathname: "/startQuiz",
+            state: findQuizById(anchor.id, quizes),
+          }}
+          onClick={handleAnchorClose}
+        >
+          Start
+        </MenuItem>
+      </Menu>
     </>
   );
 }
