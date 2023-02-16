@@ -1,7 +1,9 @@
-import { createTheme } from "@mui/material/styles";
-import { Theme } from '@mui/material/styles';
+//@ts-nocheck
 
-declare module '@mui/styles/defaultTheme' {
+import { createTheme } from "@mui/material/styles";
+import { Theme } from "@mui/material/styles";
+
+declare module "@mui/styles/defaultTheme" {
   interface DefaultTheme extends Theme {}
 }
 

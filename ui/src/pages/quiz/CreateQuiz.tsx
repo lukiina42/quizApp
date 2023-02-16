@@ -342,8 +342,8 @@ const CreateQuiz = (props) => {
         direction="row"
         spacing={0}
         justifyContent="flex-start"
-        //Header has 45px
-        sx={{ height: "calc(100vh - 45px)", minHeight: 0 }}
+        //Header has 3.5rem
+        sx={{ height: "calc(100vh - 3.5rem)", minHeight: 0 }}
       >
         <Grid
           item

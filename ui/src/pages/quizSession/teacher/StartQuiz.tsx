@@ -48,7 +48,7 @@ let stompClient;
 // I have had a lot of troubles with stale props in onMessageReceived callback here.
 // The solution is to create refs of the variables I need in their current state in the callback
 const StartQuiz = (props) => {
-  const quiz: Quiz = props.location.state;
+  const quiz: Quiz = props.location.state.quiz;
 
   //history used to move user to different page. Used at the end of the quiz to move teacher to the home page
   const history = useHistory();

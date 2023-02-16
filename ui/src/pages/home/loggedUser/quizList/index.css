@@ -1,0 +1,13 @@
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-0.2rem);
+  }
+}
+
+.trash-icon {
+  transform: scale(1.2);
+}

@@ -74,7 +74,8 @@ export default function Header() {
     (location.pathname === "/" && currentUser.status !== "Logged") ||
     location.pathname === "/login" ||
     location.pathname === "/registration" ||
-    location.pathname === "/startQuiz"
+    location.pathname === "/startQuiz" ||
+    location.pathname === "/joinQuiz"
   ) {
     return <></>;
   }
@@ -89,8 +90,8 @@ export default function Header() {
           alignItems="center"
           justifyContent="space-between"
           sx={{
-            height: 45,
-            minHeight: 45,
+            height: "3.5rem",
+            minHeight: "3.5rem",
             borderBottom: 1,
           }}
         >

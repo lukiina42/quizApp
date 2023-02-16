@@ -1,6 +1,5 @@
 import { Grid, Typography } from "@mui/material";
 
-import { useAnchor } from "./useAnchor/";
 import { Quiz, UserInterface } from "../../../common/types";
 import { HashLoader } from "react-spinners";
 import { deleteQuiz, loadAllQuizes } from "../../../api/quizApi";
@@ -17,8 +16,6 @@ interface LoggedUserHomeProps {
 //The home for logged in user. It displays the current user's
 //quizzes and enables him to edit, delete or start (Start testing students) them
 export default function LoggedUserHome({ currentUser }: LoggedUserHomeProps) {
-  const { anchor, open, handleOptionsOpen, handleClose } = useAnchor();
-
   const dispatch = useDispatch();
 
   const history = useHistory();
@@ -36,17 +33,15 @@ export default function LoggedUserHome({ currentUser }: LoggedUserHomeProps) {
   const deleteQuizMutation = useMutation(deleteQuiz, {
     onSuccess: () => {
       queryClient.invalidateQueries("quizes");
-      handleClose();
     },
   });
 
   const handleDeleteQuiz = (id: number) => {
-    deleteQuizMutation.mutate(anchor.id);
+    deleteQuizMutation.mutate(id);
   };
 
   const handleDispatchQuizChange = (quiz: Quiz) => {
     dispatch(quizChanged(quiz));
-    handleClose();
     history.push("/quiz", { name: quiz.name });
   };
 
@@ -58,7 +53,7 @@ export default function LoggedUserHome({ currentUser }: LoggedUserHomeProps) {
       direction="row"
       spacing={0}
       sx={{
-        height: "calc(100vh - 45px)",
+        height: "calc(100vh - 3.5rem)",
         width: "100%",
       }}
     >
@@ -98,10 +93,6 @@ export default function LoggedUserHome({ currentUser }: LoggedUserHomeProps) {
                     <Typography fontWeight={"bold"}>Your quizzes:</Typography>
                   </Grid>
                   <QuizList
-                    anchorOpen={open}
-                    handleAnchorClose={handleClose}
-                    handleAnchorOptionsOpen={handleOptionsOpen}
-                    anchor={anchor}
                     handleDeleteQuiz={handleDeleteQuiz}
                     quizes={loadedQuizes}
                     handleQuizChange={handleDispatchQuizChange}
