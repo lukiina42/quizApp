@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { Grid } from "@mui/material";
 import SidePanel from "./sidePanel/SidePanel";
@@ -14,11 +14,11 @@ import {
   toastSettings,
   validateQuestionInput,
 } from "./helperMethods/index";
-import { mergeSort } from "../helperMethods/index";
 import { useUser } from "../../context/UserContext";
 import { QuestionData } from "./types/index";
 import { saveQuiz } from "../../api/quizApi";
 import { useMutation } from "react-query";
+import { useSelector } from "react-redux";
 
 //The parent component in which the user creates or edits the quiz. It has 2 child components: side panel
 // where user can switch between the questions and questionCreator when user can set the parameters of the question
@@ -29,28 +29,13 @@ const CreateQuiz = (props) => {
   //history used to move user to the home page, when he saves the quiz or exits
   const history = useHistory();
 
-  //The quiz which comes from the home page (User either creates new quiz, in which
-  //case only the name will be set or edits existing quiz)
-  const quiz: Quiz = props.location.state ? props.location.state : null;
-
-  let aggregatedQuiz: Quiz = useMemo(() => {
-    let temporaryQuiz = quiz.questions
-      ? quiz
-      : { id: 0, name: quiz.name, questions: [createNewQuizQuestion(1)] };
-    if (temporaryQuiz.questions) {
-      let questions = mergeSort(temporaryQuiz.questions);
-      return {
-        ...temporaryQuiz,
-        questions,
-      };
-    }
-    return temporaryQuiz;
-  }, [quiz]);
+  //get quiz from redux because I can
+  const { quiz } = useSelector((state) => state) as { quiz: Quiz };
 
   //for initial and end state of the quiz (sent to BE)
-  const currentQuizRef = useRef(aggregatedQuiz);
+  const currentQuizRef = useRef(quiz);
 
-  const [currentQuiz, setCurrentQuiz] = useState<Quiz>(aggregatedQuiz);
+  const [currentQuiz, setCurrentQuiz] = useState<Quiz>(quiz);
 
   const [currentQuestionData, setCurrentQuestionData] = useState<QuestionData>({
     questionKey: currentQuizRef.current.questions[0].key,
@@ -357,8 +342,8 @@ const CreateQuiz = (props) => {
         direction="row"
         spacing={0}
         justifyContent="flex-start"
-        //Header has 45px
-        sx={{ height: "calc(100vh - 45px)", minHeight: 0 }}
+        //Header has 3.5rem
+        sx={{ height: "calc(100vh - 3.5rem)", minHeight: 0 }}
       >
         <Grid
           item
