@@ -6,47 +6,42 @@ import { useDispatch } from "react-redux";
 import { quizChanged } from "../../../redux/features/currentQuizSlice";
 import { createNewQuizQuestion } from "../../../pages/quiz/helperMethods";
 import { useHistory } from "react-router-dom";
+import quizDialogReducer, {
+  actionTypes,
+} from "../quizDialogReducer/quizDialogReducer";
 
 interface HomePageHeaderProps {
   handleAccountOptionsOpen: (event) => void;
+  handleHomeClick: () => void;
 }
 
+const initialDialogState = {
+  open: false,
+  quizName: "",
+  quizDescription: "",
+  //this may look like it should be derived state, however I don't want to check the error
+  //until the user entered and then left the name field
+  quizNameError: false,
+};
+
 export default function HomePageHeader(props: HomePageHeaderProps) {
-  const { handleAccountOptionsOpen } = props;
+  const { handleAccountOptionsOpen, handleHomeClick } = props;
 
   const history = useHistory();
 
-  const handleHomeClick = () => {
-    history.push("/");
-  };
-
   const dispatch = useDispatch();
 
-  const [createQuizDialog, setCreateQuizDialog] = React.useState({
-    open: false,
-    quizName: "",
-    quizDescription: "",
-    //this may look like it should be derived state, however I don't want to check the error
-    //until the user entered and then left the name field
-    quizNameError: false,
-  });
+  const [createQuizDialog, dialogDispatch] = React.useReducer(
+    quizDialogReducer,
+    initialDialogState
+  );
 
   const handleOpenDialog = () => {
-    setCreateQuizDialog((prevDialog) => {
-      return {
-        ...prevDialog,
-        open: true,
-      };
-    });
+    dialogDispatch({ type: actionTypes.OPEN });
   };
 
   const handleDialogSubmit = () => {
-    setCreateQuizDialog((prevDialog) => {
-      return {
-        ...prevDialog,
-        open: false,
-      };
-    });
+    dialogDispatch({ type: actionTypes.CLOSE });
     dispatch(
       quizChanged({
         id: 0,
@@ -59,21 +54,11 @@ export default function HomePageHeader(props: HomePageHeaderProps) {
   };
 
   const handleDialogClose = () => {
-    setCreateQuizDialog((prevDialog) => {
-      return {
-        ...prevDialog,
-        open: false,
-      };
-    });
+    dialogDispatch({ type: actionTypes.CLOSE });
   };
 
   const handleDialogInputChange = (event) => {
-    setCreateQuizDialog((prevDialog) => {
-      return {
-        ...prevDialog,
-        [event.target.name]: event.target.value,
-      };
-    });
+    dialogDispatch({ type: actionTypes.INPUTCHANGE, event });
   };
 
   return (

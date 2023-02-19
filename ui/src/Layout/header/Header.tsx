@@ -9,6 +9,7 @@ import {
 import HomePageHeader from "./HomePageHeader/HomePageHeader";
 import AccountMenu from "./AccountMenu/AccountMenu";
 import { useAnchor } from "../../common/useAnchor";
+import EditQuizHeader from "./EditQuizHeader/EditQuizHeader";
 
 //The header of the application.
 //It is displayed differently based on current url location in the app and whether the user is guest or logged in
@@ -21,6 +22,10 @@ export default function Header() {
   //Current user and change user method from context
   const currentUser = useUser();
   const changeUser = useUserUpdate();
+
+  const handleHomeClick = () => {
+    history.push("/");
+  };
 
   const {
     anchor,
@@ -46,12 +51,20 @@ export default function Header() {
       location.pathname === "/quiz" &&
       currentUser.status === UserStatus.Logged
     ) {
-      //todo
-      //return <EditQuizHeader />;
-      return <></>;
+      return (
+        <EditQuizHeader
+          handleHomeClick={handleHomeClick}
+          handleAccountOptionsOpen={handleOptionsOpen}
+        />
+      );
     }
     if (location.pathname === "/" && currentUser.status === UserStatus.Logged) {
-      return <HomePageHeader handleAccountOptionsOpen={handleOptionsOpen} />;
+      return (
+        <HomePageHeader
+          handleHomeClick={handleHomeClick}
+          handleAccountOptionsOpen={handleOptionsOpen}
+        />
+      );
     }
     return <></>;
   };
