@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import { useLocation, useHistory } from "react-router-dom";
 import {
   useUser,
@@ -6,10 +6,9 @@ import {
   useUserUpdate,
   initialLoggedUserState,
 } from "../../context/UserContext";
-import { useDispatch } from "react-redux";
-import { quizChanged } from "../../redux/features/currentQuizSlice";
-import { createNewQuizQuestion } from "../../pages/quiz/helperMethods";
 import HomePageHeader from "./HomePageHeader/HomePageHeader";
+import AccountMenu from "./AccountMenu/AccountMenu";
+import { useAnchor } from "../../common/useAnchor";
 
 //The header of the application.
 //It is displayed differently based on current url location in the app and whether the user is guest or logged in
@@ -18,35 +17,28 @@ export default function Header() {
   const location = useLocation();
   //History used to move between pages
   const history = useHistory();
-  //Name of the quiz, which is displayed while creating the quiz
-  const quizName = useRef(null);
-
-  const dispatch = useDispatch();
 
   //Current user and change user method from context
   const currentUser = useUser();
   const changeUser = useUserUpdate();
 
-  //Handles create new quiz button, moves user to create quiz location with the name of the quiz
-  const handleCreateClick = () => {
-    //@ts-ignore
-    const name = quizName.current?.value;
-    dispatch(
-      quizChanged({
-        id: 0,
-        name,
-        questions: [createNewQuizQuestion(1)],
-      })
-    );
-    history.push("/quiz", { name });
-    //handlePopoverClose();
-  };
+  const {
+    anchor,
+    open: anchorOpen,
+    handleClose,
+    handleOptionsOpen,
+  } = useAnchor();
 
-  //Logouts the user
+  //Logout the user
   const handleLogout = (): void => {
     //@ts-ignore
     changeUser(initialLoggedUserState);
     history.push("/");
+  };
+
+  const handleLogoutMenu = () => {
+    handleLogout();
+    handleClose();
   };
 
   const getCurrentHeader = () => {
@@ -55,15 +47,11 @@ export default function Header() {
       currentUser.status === UserStatus.Logged
     ) {
       //todo
-      return <EditQuizHeader />;
+      //return <EditQuizHeader />;
+      return <></>;
     }
     if (location.pathname === "/" && currentUser.status === UserStatus.Logged) {
-      return (
-        <HomePageHeader
-          userEmail={currentUser.email.split("@")[0]}
-          handleLogout={handleLogout}
-        />
-      );
+      return <HomePageHeader handleAccountOptionsOpen={handleOptionsOpen} />;
     }
     return <></>;
   };
@@ -71,53 +59,14 @@ export default function Header() {
   return (
     <>
       <header>{getCurrentHeader()}</header>
+      <AccountMenu
+        anchorOpen={anchorOpen}
+        anchor={anchor}
+        handleClose={handleClose}
+        handleOptionsOpen={handleOptionsOpen}
+        handleLogout={handleLogoutMenu}
+        email={currentUser.email.split("@")[0]}
+      />
     </>
   );
-}
-
-{
-  /* <Popover
-        id={id}
-        open={open}
-        anchorEl={anchorEl}
-        onClose={handlePopoverClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "center",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "center",
-        }}
-      >
-        <Grid
-          container
-          alignItems="center"
-          spacing={1}
-          justifyContent="flex-start"
-          sx={{ padding: 2, width: 300 }}
-        >
-          <Grid item xs={12}>
-            <TextField
-              id="theQuestion"
-              size="small"
-              inputProps={{ min: 0, style: { textAlign: "center" } }}
-              placeholder="Name of quiz"
-              autoComplete="new-password"
-              fullWidth
-              inputRef={quizName}
-            />
-          </Grid>
-          <Grid item xs={12} sx={{ display: "flex", justifyContent: "center" }}>
-            <Button
-              color="secondary"
-              variant="contained"
-              sx={{ textTransform: "none" }}
-              onClick={handleCreateClick}
-            >
-              Create
-            </Button>
-          </Grid>
-        </Grid>
-      </Popover> */
 }

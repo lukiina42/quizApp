@@ -1,27 +1,79 @@
 import React from "react";
 import { Grid, Button, Box } from "@mui/material";
-import { useAnchor } from "../../../common/useAnchor";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import AccountMenu from "./accountMenu/AccountMenu";
+import CreateQuizDialog from "../../../common/EditQuizDialog/EditQuizDialog";
+import { useDispatch } from "react-redux";
+import { quizChanged } from "../../../redux/features/currentQuizSlice";
+import { createNewQuizQuestion } from "../../../pages/quiz/helperMethods";
+import { useHistory } from "react-router-dom";
 
 interface HomePageHeaderProps {
-  userEmail: string;
-  handleLogout: () => void;
+  handleAccountOptionsOpen: (event) => void;
 }
 
 export default function HomePageHeader(props: HomePageHeaderProps) {
-  const { userEmail, handleLogout } = props;
+  const { handleAccountOptionsOpen } = props;
 
-  const {
-    anchor,
-    open: anchorOpen,
-    handleClose,
-    handleOptionsOpen,
-  } = useAnchor();
+  const history = useHistory();
 
-  const handleLogoutMenu = () => {
-    handleLogout();
-    handleClose();
+  const handleHomeClick = () => {
+    history.push("/");
+  };
+
+  const dispatch = useDispatch();
+
+  const [createQuizDialog, setCreateQuizDialog] = React.useState({
+    open: false,
+    quizName: "",
+    quizDescription: "",
+    //this may look like it should be derived state, however I don't want to check the error
+    //until the user entered and then left the name field
+    quizNameError: false,
+  });
+
+  const handleOpenDialog = () => {
+    setCreateQuizDialog((prevDialog) => {
+      return {
+        ...prevDialog,
+        open: true,
+      };
+    });
+  };
+
+  const handleDialogSubmit = () => {
+    setCreateQuizDialog((prevDialog) => {
+      return {
+        ...prevDialog,
+        open: false,
+      };
+    });
+    dispatch(
+      quizChanged({
+        id: 0,
+        name: createQuizDialog.quizName,
+        description: createQuizDialog.quizDescription,
+        questions: [createNewQuizQuestion(1)],
+      })
+    );
+    history.push("/quiz", { name: createQuizDialog.quizName });
+  };
+
+  const handleDialogClose = () => {
+    setCreateQuizDialog((prevDialog) => {
+      return {
+        ...prevDialog,
+        open: false,
+      };
+    });
+  };
+
+  const handleDialogInputChange = (event) => {
+    setCreateQuizDialog((prevDialog) => {
+      return {
+        ...prevDialog,
+        [event.target.name]: event.target.value,
+      };
+    });
   };
 
   return (
@@ -39,7 +91,18 @@ export default function HomePageHeader(props: HomePageHeaderProps) {
         }}
       >
         <Grid item sx={{ paddingLeft: 2 }}>
-          <div style={{ fontWeight: "bold" }}>{userEmail}</div>
+          <Box
+            component="img"
+            src="/images/logo.png"
+            alt="logo"
+            height={"32px"}
+            sx={{
+              ":hover": {
+                cursor: "pointer",
+              },
+            }}
+            onClick={handleHomeClick}
+          ></Box>
         </Grid>
 
         <Grid item sx={{ paddingRight: 2 }}>
@@ -53,7 +116,7 @@ export default function HomePageHeader(props: HomePageHeaderProps) {
               color="primary"
               variant="contained"
               size="small"
-              //onClick={handlePopoverChange}
+              onClick={handleOpenDialog}
               sx={{ textTransform: "none", fontWeight: "bold" }}
             >
               Create quiz
@@ -64,20 +127,23 @@ export default function HomePageHeader(props: HomePageHeaderProps) {
                 ":hover": {
                   cursor: "pointer",
                 },
-                color: "#a65419",
+                color: "#43b587",
               }}
-              onClick={handleOptionsOpen}
+              onClick={handleAccountOptionsOpen}
             />
           </Box>
         </Grid>
       </Grid>
-      <AccountMenu
-        anchorOpen={anchorOpen}
-        anchor={anchor}
-        handleClose={handleClose}
-        handleOptionsOpen={handleOptionsOpen}
-        handleLogout={handleLogoutMenu}
-        email={userEmail}
+      <CreateQuizDialog
+        handleDialogInputChange={handleDialogInputChange}
+        open={createQuizDialog.open}
+        handleSubmit={handleDialogSubmit}
+        handleClose={handleDialogClose}
+        headingText={"Insert the core information about your new quiz"}
+        quizNameValue={createQuizDialog.quizName}
+        quizDescriptionValue={createQuizDialog.quizDescription}
+        submitText="Submit"
+        cancelText="Cancel"
       />
     </>
   );
