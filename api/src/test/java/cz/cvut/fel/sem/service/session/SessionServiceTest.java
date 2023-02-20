@@ -82,7 +82,7 @@ public class SessionServiceTest {
                 new Answer("answer1", true, AnswerPosition.BOTTOMRIGHT, null)
         );
         Question question1 = new Question(1, QuestionType.QUIZ, "question1", null, answers1, null);
-        Quiz quiz = new Quiz(List.of(question1), "Quiz", null);
+        Quiz quiz = new Quiz(List.of(question1), "Quiz", "quizDescription", null);
         when(quizRepository.getOne(quizId)).thenReturn(quiz);
         when(sessionRepository.save(any())).thenReturn(null);
 

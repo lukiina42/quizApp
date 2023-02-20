@@ -50,7 +50,7 @@ export default function QuizList(props: QuizListProps) {
         open={deleteConfirmationDialog.open}
         handleConfirm={handleDialogConfirm}
         handleDecline={handleDialogDecline}
-        headingText={`Are you sure you want to delete quiz ${deleteConfirmationDialog.quizName}?`}
+        headingText={`Are you sure you want to delete ${deleteConfirmationDialog.quizName}?`}
         confirmText="Delete"
         declineText="Cancel"
       />
@@ -85,7 +85,7 @@ export default function QuizList(props: QuizListProps) {
               }}
             >
               <Box
-                width={"40%"}
+                width={"60%"}
                 display="flex"
                 flexDirection={"column"}
                 gap="1rem"
@@ -95,7 +95,7 @@ export default function QuizList(props: QuizListProps) {
                   variant="h5"
                   sx={{ fontWeight: "bold" }}
                 >
-                  {quiz.name.toUpperCase()}
+                  {quiz.name}
                 </Typography>
                 <Typography
                   sx={{
@@ -109,11 +109,8 @@ export default function QuizList(props: QuizListProps) {
                   variant="body2"
                   color="#87b0d4"
                 >
-                  This is an absolute description lulw
-                  daaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-                  daaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-                  daaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-                  daaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+                  {/* @ts-ignore */}
+                  {quiz.description}
                 </Typography>
                 <Box width="auto">
                   <Chip

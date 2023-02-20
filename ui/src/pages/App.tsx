@@ -3,7 +3,7 @@ import LoginPage from "./login/LoginPage";
 import RegistrationPage from "./registration/RegistrationPage";
 import PageNotFound from "./notFound/PageNotFound";
 import CreateQuiz from "./quiz/CreateQuiz";
-import Header from "../Layout/Header";
+import Header from "../Layout/header/Header";
 import Home from "./home/Home";
 import StartQuiz from "./quizSession/teacher/StartQuiz";
 import JoinQuiz from "./quizSession/student/JoinQuiz";

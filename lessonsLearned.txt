@@ -1,0 +1,5 @@
+useEffect - I used it for the state synchronization between components. It got extremely messy in quiz creation comopnent
+and there was absolutely no room to add new functionality because me myself as a creator didn't really know what
+is going on. I refactored the logic there to udpate the states in different event handlers instead. It got way cleaner,
+but I had like 10 handlers at CreateQuiz.tsx component. So to further simplify and clear the component, I extracted the state logic
+into useReducer hook.

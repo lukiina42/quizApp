@@ -9,6 +9,15 @@ declare module "@mui/styles/defaultTheme" {
 
 //defines colors used in the app. Those are then used using theme.palette.*
 const theme = createTheme({
+  typography: {
+    fontFamily: [
+      "Ubuntu",
+      "Roboto",
+      '"Helvetica Neue"',
+      "Arial",
+      "sans-serif",
+    ].join(","),
+  },
   spacing: 8,
   palette: {
     primary: {
