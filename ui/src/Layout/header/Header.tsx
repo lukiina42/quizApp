@@ -55,6 +55,7 @@ export default function Header() {
         <EditQuizHeader
           handleHomeClick={handleHomeClick}
           handleAccountOptionsOpen={handleOptionsOpen}
+          currentUserId={currentUser.id}
         />
       );
     }

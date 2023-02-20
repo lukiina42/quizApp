@@ -41,7 +41,7 @@ public class QuizMapperTest {
     public void mapToModel_validArgumentsProvided_modelObjectReturned(){
         //Arrange
         List<QuestionDto> dtoList = List.of(new QuestionDto(), new QuestionDto());
-        QuizDto quizDto = new QuizDto(1L, "quizName", dtoList);
+        QuizDto quizDto = new QuizDto(1L, "quizName", "quizDescription", dtoList);
         List<Question> questionList = List.of(new Question(), new Question());
         when(questionMapper.mapListToModel(eq(quizDto.getQuestions()), any())).thenReturn(questionList);
 
@@ -51,6 +51,7 @@ public class QuizMapperTest {
         //Verify
         assertEquals(java.util.Optional.of(1L), java.util.Optional.of(actualResult.getId()));
         assertEquals("quizName", actualResult.getName());
+        assertEquals("quizDescription", actualResult.getDescription());
         assertEquals(questionList, actualResult.getQuestions());
     }
 
@@ -59,7 +60,7 @@ public class QuizMapperTest {
         //Arrange
         List<Question> questionList = List.of(new Question(), new Question());
         //TODO rewrite this, it does not work after adding owner to the quiz
-        Quiz quiz = new Quiz(questionList, "quizName", null);
+        Quiz quiz = new Quiz(questionList, "quizDescription", "quizName", null);
         List<QuestionDto> dtoList = List.of(new QuestionDto(), new QuestionDto());
         when(questionMapper.mapListToDto(quiz.getQuestions())).thenReturn(dtoList);
 
@@ -68,6 +69,7 @@ public class QuizMapperTest {
 
         //Verify
         assertEquals("quizName", actualResult.getName());
+        assertEquals("quizDescription", actualResult.getDescription());
         assertEquals(dtoList, actualResult.getQuestions());
     }
 }

@@ -22,10 +22,11 @@ public class QuizMapper {
         newQuiz.setQuestions(questionMapper.mapListToModel(quizDto.getQuestions(), newQuiz));
         newQuiz.setName(quizDto.getName());
         newQuiz.setId(quizDto.getId());
+        newQuiz.setDescription(quizDto.getDescription());
         return newQuiz;
     }
 
     public QuizDto mapToDto(Quiz quiz){
-        return new QuizDto(quiz.getId(), quiz.getName(), questionMapper.mapListToDto(quiz.getQuestions()));
+        return new QuizDto(quiz.getId(), quiz.getName(), quiz.getDescription(), questionMapper.mapListToDto(quiz.getQuestions()));
     }
 }

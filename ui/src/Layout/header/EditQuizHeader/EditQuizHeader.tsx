@@ -7,16 +7,19 @@ import quizDialogReducer, {
 } from "../quizDialogReducer/quizDialogReducer";
 import { useDispatch, useSelector } from "react-redux";
 import { quizChanged } from "../../../redux/features/currentQuizSlice";
+import { saveQuiz } from "../../../api/quizApi";
+import { useMutation } from "react-query";
 import { Quiz } from "../../../common/types";
 import EditIcon from "@mui/icons-material/Edit";
 
 interface EditQuizHeaderProps {
   handleAccountOptionsOpen: (event) => void;
   handleHomeClick: () => void;
+  currentUserId: number;
 }
 
 export default function EditQuizHeader(props: EditQuizHeaderProps) {
-  const { handleAccountOptionsOpen, handleHomeClick } = props;
+  const { handleAccountOptionsOpen, handleHomeClick, currentUserId } = props;
 
   //get quiz from redux because I can
   const { quiz } = useSelector((state) => state) as { quiz: Quiz };
@@ -35,17 +38,31 @@ export default function EditQuizHeader(props: EditQuizHeaderProps) {
     dialogDispatch({ type: actionTypes.OPEN });
   };
 
+  const saveQuizMutation = useMutation(saveQuiz, {
+    onSuccess: () => {
+      dispatch(
+        quizChanged({
+          id: quiz.id,
+          name: editQuizDialog.quizName,
+          description: editQuizDialog.quizDescription,
+          questions: [...quiz.questions],
+        })
+      );
+    },
+  });
+
   const handleDialogSubmit = () => {
-    // dialogDispatch({ type: actionTypes.CLOSE });
-    // dispatch(
-    //   quizChanged({
-    //     id: 0,
-    //     name: createQuizDialog.quizName,
-    //     description: createQuizDialog.quizDescription,
-    //     questions: [createNewQuizQuestion(1)],
-    //   })
-    // );
-    // history.push("/quiz", { name: createQuizDialog.quizName });
+    dialogDispatch({ type: actionTypes.CLOSE });
+    const bodyToSave = {
+      ...quiz,
+      description: editQuizDialog.quizDescription,
+      name: editQuizDialog.quizName,
+    };
+    debugger;
+    saveQuizMutation.mutate({
+      bodyToSave,
+      userId: currentUserId,
+    });
   };
 
   const handleDialogClose = () => {
@@ -134,7 +151,7 @@ export default function EditQuizHeader(props: EditQuizHeaderProps) {
         open={editQuizDialog.open}
         handleSubmit={handleDialogSubmit}
         handleClose={handleDialogClose}
-        headingText={"Insert the core information about your new quiz"}
+        headingText={"Edit the core information about your quiz"}
         quizNameValue={editQuizDialog.quizName}
         quizDescriptionValue={editQuizDialog.quizDescription}
         submitText="Submit"
