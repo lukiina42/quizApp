@@ -2,8 +2,8 @@ import React from "react";
 import { Grid, TextField } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import "react-toastify/dist/ReactToastify.css";
-import { LanguageType, QuizAnswers } from "../../../../common/types";
-import Answers from "../../../quiz/questionParameters/answers/Answers";
+import { QuizQuestionAnswer, LanguageType } from "../../../../common/types";
+import QuizAnswers from "../../../quiz/questionParameters/answers/QuizAnswers";
 import Editor from "../../../quiz/questionParameters/codeEditor/CustomCodeEditor";
 
 const useStyles = makeStyles((theme) => ({
@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 interface QuestionDisplayProps {
-  quizAnswers: QuizAnswers;
+  quizAnswers: QuizQuestionAnswer[];
   questionName?: string;
   codeTextProp?: string;
   languageProp?: LanguageType;
@@ -95,8 +95,8 @@ const QuestionDisplay = (props: QuestionDisplayProps) => {
           width={"80%"}
           sx={{ minHeight: "225px", display: "flex", alignItems: "center" }}
         >
-          <Answers
-            quizAnswers={quizAnswers}
+          <QuizAnswers
+            quizAnswers={quizAnswers as QuizQuestionAnswer[]}
             disabled
             handleAnswerCorrectChange={() => {}}
           />

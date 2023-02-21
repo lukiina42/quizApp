@@ -8,7 +8,6 @@ import { NewQuestionType, Quiz } from "../../../common/types";
 import { QuestionData } from "../types/index";
 
 interface SidePanelProps {
-  createNewQuizQuestion: (key: number) => any; //TODO should be Question
   currentQuiz: Quiz;
   currentQuestionData: QuestionData;
   changeQuestion: (key: number) => void;
@@ -174,7 +173,7 @@ const SidePanel = (props: SidePanelProps) => {
               sx={{ textTransform: "none", width: "100%" }}
               onClick={(e) => {
                 handlePopoverClose();
-                handleNewQuestion(e);
+                handleNewQuestion(NewQuestionType.QUIZ);
               }}
             >
               Quiz question
@@ -186,8 +185,10 @@ const SidePanel = (props: SidePanelProps) => {
               color="primary"
               variant="contained"
               sx={{ textTransform: "none", width: "100%" }}
-              onClick={handleNewQuestion}
-              disabled
+              onClick={() => {
+                handlePopoverClose();
+                handleNewQuestion(NewQuestionType.TRUEFALSE);
+              }}
             >
               True/false question
             </Button>

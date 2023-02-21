@@ -10,7 +10,7 @@ import ListItemText from "@mui/material/ListItemText";
 import PersonIcon from "@mui/icons-material/Person";
 import { Prompt } from "react-router";
 import { useHistory } from "react-router-dom";
-import { Quiz, Question } from "../../../common/types";
+import { Quiz, Question, QuizQuestionAnswer } from "../../../common/types";
 import QuestionDisplay from "./questionDisplay/QuestionDisplay";
 import QuestionEvaluation from "./questionEvaluation/QuestionEvaluation";
 import StudentResults from "./studentResults/StudentResults";
@@ -372,32 +372,7 @@ const StartQuiz = (props) => {
                 <QuestionDisplay
                   questionName={currentQuestion?.name}
                   codeTextProp={currentQuestion?.question.value}
-                  quizAnswers={{
-                    topLeftAnswer: {
-                      value: currentQuestion
-                        ? currentQuestion.topLeftAnswer.value
-                        : "",
-                      isCorrect: false,
-                    },
-                    topRightAnswer: {
-                      value: currentQuestion
-                        ? currentQuestion.topRightAnswer.value
-                        : "",
-                      isCorrect: false,
-                    },
-                    bottomLeftAnswer: {
-                      value: currentQuestion
-                        ? currentQuestion.bottomLeftAnswer.value
-                        : "",
-                      isCorrect: false,
-                    },
-                    bottomRightAnswer: {
-                      value: currentQuestion
-                        ? currentQuestion.bottomRightAnswer.value
-                        : "",
-                      isCorrect: false,
-                    },
-                  }}
+                  quizAnswers={currentQuestion?.answers as QuizQuestionAnswer[]}
                   languageProp={currentQuestion?.question.language}
                 />
               </Grid>

@@ -5,7 +5,11 @@ import SockJS from "sockjs-client";
 import SOCKET_URL from "../../../common/components";
 import { ToastContainer } from "react-toastify";
 import { toast } from "react-toastify";
-import { Quiz, initialQuizAnswers, QuizAnswers } from "../../../common/types";
+import {
+  Quiz,
+  initialQuizAnswers,
+  QuizQuestionAnswer,
+} from "../../../common/types";
 import { Prompt } from "react-router";
 import {
   JoinSessionResponse,
@@ -51,20 +55,22 @@ const JoinQuiz = () => {
   const [currentQuestionKey, setCurrentQuestionKey] = useState<number>(0);
   //Contains info about which answers are correct and which are false. This info is saved to each question.
   //Student makes the decision which answers he thinks are correct when he is answering the question
-  const [currentAnswers, setCurrentAnswers] = useState<QuizAnswers | null>(
-    initialQuizAnswers
-  );
+  const [currentAnswers, setCurrentAnswers] = useState<
+    QuizQuestionAnswer[] | null
+  >(initialQuizAnswers);
 
-  const handleAnswerCorrectChange = (key: string) => {
-    setCurrentAnswers((prevQuizAnswers) => {
-      return {
-        ...prevQuizAnswers,
-        [key]: {
-          value: prevQuizAnswers![key].value,
-          isCorrect: !prevQuizAnswers![key].isCorrect,
-        },
-      } as QuizAnswers;
-    });
+  const handleQuizAnswerCorrectChange = (key: string) => {
+    setCurrentAnswers(
+      (currentAnswers as QuizQuestionAnswer[]).map((answer) => {
+        if (answer.position === key) {
+          return {
+            ...answer,
+            isCorrect: !answer.isCorrect,
+          };
+        }
+        return answer;
+      })
+    );
   };
 
   //Contains current type of layout the page should have
@@ -131,28 +137,7 @@ const JoinQuiz = () => {
     nextQuestionMessage: NextQuestionMessage
   ): void => {
     const nextKey = nextQuestionMessage.questionKey;
-    setCurrentAnswers((prevAnswers) => {
-      return {
-        ...prevAnswers,
-        topRightAnswer: {
-          isCorrect: false,
-          value: quizRef.current!.questions[nextKey - 1].topRightAnswer.value,
-        },
-        topLeftAnswer: {
-          isCorrect: false,
-          value: quizRef.current!.questions[nextKey - 1].topLeftAnswer.value,
-        },
-        bottomRightAnswer: {
-          isCorrect: false,
-          value:
-            quizRef.current!.questions[nextKey - 1].bottomRightAnswer.value,
-        },
-        bottomLeftAnswer: {
-          isCorrect: false,
-          value: quizRef.current!.questions[nextKey - 1].bottomLeftAnswer.value,
-        },
-      } as QuizAnswers;
-    });
+    setCurrentAnswers(quizRef.current!.questions[nextKey - 1].answers);
     setCurrentQuestionKey(nextKey);
     setCurrentLayout(LayoutType.AnsweringQuestion);
     textWhenWaiting.current = "undefined";
@@ -281,10 +266,7 @@ const JoinQuiz = () => {
     const newQuestionAnswer: QuestionAnswer = {
       sessionId: sessionId.current,
       questionKey: currentQuestionKey,
-      topLeftAnswer: currentAnswers!.topLeftAnswer.isCorrect,
-      bottomLeftAnswer: currentAnswers!.bottomLeftAnswer.isCorrect,
-      topRightAnswer: currentAnswers!.topRightAnswer.isCorrect,
-      bottomRightAnswer: currentAnswers!.bottomRightAnswer.isCorrect,
+      answers: currentAnswers as QuizQuestionAnswer[],
     };
     stompClient.send("/ws/submitAnswer", {}, JSON.stringify(newQuestionAnswer));
     textWhenWaiting.current = "was";
@@ -352,8 +334,8 @@ const JoinQuiz = () => {
       )}
       {currentLayout === LayoutType.AnsweringQuestion && (
         <AnswerToQuestion
-          currentAnswers={currentAnswers}
-          handleAnswerCorrectChange={handleAnswerCorrectChange}
+          currentAnswers={currentAnswers as QuizQuestionAnswer[]}
+          handleAnswerCorrectChange={handleQuizAnswerCorrectChange}
           handleSendAnswersButton={handleSendAnswersButton}
         />
       )}

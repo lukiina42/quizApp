@@ -5,11 +5,17 @@ import SidePanel from "./sidePanel/SidePanel";
 import QuestionCreator from "./questionParameters/QuestionCreate";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { LanguageType, QuizAnswers, UserInterface } from "../../common/types";
+import {
+  LanguageType,
+  NewQuestionType,
+  Question,
+  QuizQuestionAnswer,
+  UserInterface,
+} from "../../common/types";
 import { Quiz } from "../../common/types";
 import {
   countBreakLines,
-  createNewQuizQuestion,
+  createNewQuestion,
   createQuestionFromStates,
   toastSettings,
   validateQuestionInput,
@@ -43,16 +49,21 @@ const CreateQuiz = (props) => {
     questionText: currentQuizRef.current.questions[0].question.value,
     questionLanguage: currentQuizRef.current.questions[0].question.language,
     questionType: currentQuizRef.current.questions[0].questionType,
+    questionIsCorrect: currentQuizRef.current.questions[0].isCorrect
+      ? currentQuizRef.current.questions[0].isCorrect
+      : false,
   });
 
   //Contains info about which answer values.
   //TODO add interface from types here
-  const [quizAnswers, setQuizAnswers] = useState<QuizAnswers>({
-    topLeftAnswer: currentQuizRef.current.questions[0].topLeftAnswer,
-    topRightAnswer: currentQuizRef.current.questions[0].topRightAnswer,
-    bottomLeftAnswer: currentQuizRef.current.questions[0].bottomLeftAnswer,
-    bottomRightAnswer: currentQuizRef.current.questions[0].bottomRightAnswer,
-  });
+  const [answers, setAnswers] = useState<QuizQuestionAnswer[]>(
+    // currentQuizRef.current.questions[0].questionType === NewQuestionType.QUIZ
+    //   ? sortQuizAnswers(
+    //       currentQuizRef.current.questions[0].answers as QuizQuestionAnswer[]
+    //     )
+    //   : []
+    currentQuizRef.current.questions[0].answers
+  );
 
   const saveQuizMutation = useMutation(saveQuiz, {
     onSuccess: () => {
@@ -88,47 +99,59 @@ const CreateQuiz = (props) => {
       return { ...prevQuestionData, questionName: event.target.value };
     });
 
-  const handleAnswerCorrectChange = (key: string) => {
-    setQuizAnswers((prevQuizAnswers) => {
+  const handleQuizAnswerCorrectChange = (key: string) => {
+    setAnswers(
+      answers.map((answer) => {
+        if (answer.position === key) {
+          return {
+            ...answer,
+            isCorrect: !answer.isCorrect,
+          };
+        }
+        return answer;
+      })
+    );
+  };
+
+  const handleTrueFalseAnswerCorrectToggle = () => {
+    setCurrentQuestionData((prevQuestionData) => {
       return {
-        ...prevQuizAnswers,
-        [key]: {
-          ...[key],
-          value: prevQuizAnswers[key].value,
-          isCorrect: !prevQuizAnswers[key].isCorrect,
-        },
+        ...prevQuestionData,
+        questionIsCorrect: !prevQuestionData.questionIsCorrect,
       };
     });
   };
 
   //Handles change in one of the answers, handles the input
-  const handleAnswerValueChange = (event): void => {
+  const handleQuizAnswerValueChange = (event): void => {
     if (
       event.target.value.length > 150 ||
       countBreakLines(event.target.value) > 2
     ) {
       return;
     }
-    setQuizAnswers((currAnswers) => {
-      return {
-        ...currAnswers,
-        [event.target.id]: {
-          ...currAnswers[event.target.id],
-          value: event.target.value,
-        },
-      };
-    });
+    setAnswers(
+      (answers as QuizQuestionAnswer[]).map((answer) => {
+        if (answer.position === event.target.id) {
+          return {
+            ...answer,
+            value: event.target.value,
+          };
+        }
+        return answer;
+      })
+    );
   };
 
   //Saves the question with the current values -> states or values of text fields are used
   const saveTheQuestion = (finalSave: boolean): void => {
     const updatedQuestion = createQuestionFromStates(
       currentQuestionData,
-      quizAnswers
+      answers
     );
     const updatedQuestionsFromQuiz = [...currentQuiz.questions];
     updatedQuestionsFromQuiz[currentQuestionData.questionKey - 1] =
-      updatedQuestion;
+      updatedQuestion as Question;
 
     if (!finalSave) {
       //update questions in quiz without mutating the state
@@ -151,7 +174,7 @@ const CreateQuiz = (props) => {
       //don't do anything if current question is clicked
       return;
     }
-    const status = validateQuestionInput(currentQuestionData, quizAnswers);
+    const status = validateQuestionInput(currentQuestionData, answers);
     if (status !== "OK") {
       toast.warn(status, {
         ...toastSettings,
@@ -173,56 +196,82 @@ const CreateQuiz = (props) => {
         questionType: newQuestion.questionType,
       };
     });
-    setQuizAnswers((prevQuizAnswers) => {
-      return {
-        ...prevQuizAnswers,
-        topLeftAnswer: newQuestion.topLeftAnswer,
-        bottomLeftAnswer: newQuestion.bottomLeftAnswer,
-        topRightAnswer: newQuestion.topRightAnswer,
-        bottomRightAnswer: newQuestion.bottomRightAnswer,
-      };
-    });
+
+    switch (newQuestion.questionType) {
+      case NewQuestionType.QUIZ:
+        setAnswers(newQuestion.answers);
+        break;
+      case NewQuestionType.TRUEFALSE:
+        setAnswers([]);
+        break;
+      default:
+        setAnswers([]);
+        break;
+    }
   };
 
   //defines what should happen if user creates new question => create new empty question and
   //save the current one in QuestionCreator.js using the questionParams state
-  const handleNewQuestionClick = (event): void => {
-    const status = validateQuestionInput(currentQuestionData, quizAnswers);
-    if (status !== "OK") {
-      toast.warn(status, {
-        ...toastSettings,
+  const handleNewQuestionClick = (questionType: NewQuestionType): void => {
+    if (currentQuestionData.questionType === NewQuestionType.QUIZ) {
+      const status = validateQuestionInput(currentQuestionData, answers);
+      if (status !== "OK") {
+        toast.warn(status, {
+          ...toastSettings,
+        });
+        return;
+      }
+      saveTheQuestion(false);
+
+      const newQuestion = createNewQuestion(
+        currentQuiz.questions.length + 1,
+        questionType
+      );
+      setCurrentQuiz((prevQuiz) => {
+        return {
+          ...prevQuiz,
+          questions: [...prevQuiz.questions, newQuestion],
+        };
       });
-      return;
+
+      setCurrentQuestionData((prevCurrentQuestionData) => {
+        return {
+          ...prevCurrentQuestionData,
+          questionKey: newQuestion.key,
+          questionName: newQuestion.name,
+          questionText: newQuestion.question.value,
+          questionLanguage: newQuestion.question.language,
+          questionType: newQuestion.questionType,
+        };
+      });
+      setAnswers(newQuestion.answers);
+    } else if (currentQuestionData.questionType === NewQuestionType.TRUEFALSE) {
+      saveTheQuestion(false);
+
+      const newQuestion = createNewQuestion(
+        currentQuiz.questions.length + 1,
+        questionType
+      );
+      setCurrentQuiz((prevQuiz) => {
+        return {
+          ...prevQuiz,
+          questions: [...prevQuiz.questions, newQuestion],
+        };
+      });
+
+      setCurrentQuestionData((prevCurrentQuestionData) => {
+        return {
+          ...prevCurrentQuestionData,
+          questionKey: newQuestion.key,
+          questionName: newQuestion.name,
+          questionText: newQuestion.question.value,
+          questionLanguage: newQuestion.question.language,
+          questionType: newQuestion.questionType,
+          questionIsCorrect: true,
+        };
+      });
+      setAnswers(newQuestion.answers);
     }
-    saveTheQuestion(false);
-
-    const newQuestion = createNewQuizQuestion(currentQuiz.questions.length + 1);
-    setCurrentQuiz((prevQuiz) => {
-      return {
-        ...prevQuiz,
-        questions: [...prevQuiz.questions, newQuestion],
-      };
-    });
-
-    setCurrentQuestionData((prevCurrentQuestionData) => {
-      return {
-        ...prevCurrentQuestionData,
-        questionKey: newQuestion.key,
-        questionName: newQuestion.name,
-        questionText: newQuestion.question.value,
-        questionLanguage: newQuestion.question.language,
-        questionType: newQuestion.questionType,
-      };
-    });
-    setQuizAnswers((prevQuizAnswers) => {
-      return {
-        ...prevQuizAnswers,
-        topLeftAnswer: newQuestion.topLeftAnswer,
-        bottomLeftAnswer: newQuestion.bottomLeftAnswer,
-        topRightAnswer: newQuestion.topRightAnswer,
-        bottomRightAnswer: newQuestion.bottomRightAnswer,
-      };
-    });
   };
 
   //Gets triggered when user clicks on the trash icon in the question, the question then gets deleted
@@ -271,15 +320,7 @@ const CreateQuiz = (props) => {
           questionType: nextQuestion.questionType,
         };
       });
-      setQuizAnswers((prevQuizAnswers) => {
-        return {
-          ...prevQuizAnswers,
-          topLeftAnswer: nextQuestion.topLeftAnswer,
-          bottomLeftAnswer: nextQuestion.bottomLeftAnswer,
-          topRightAnswer: nextQuestion.topRightAnswer,
-          bottomRightAnswer: nextQuestion.bottomRightAnswer,
-        };
-      });
+      setAnswers(nextQuestion.answers);
     } else if (currentQuestionData.questionKey > key) {
       setCurrentQuestionData((prevData) => {
         return {
@@ -293,7 +334,7 @@ const CreateQuiz = (props) => {
   //Saves the whole quiz
   const handleSaveQuizButton = (event): void => {
     event.preventDefault();
-    const status = validateQuestionInput(currentQuestionData, quizAnswers);
+    const status = validateQuestionInput(currentQuestionData, answers);
     if (status !== "OK") {
       toast.warn(status, {
         position: "top-right",
@@ -360,7 +401,6 @@ const CreateQuiz = (props) => {
         >
           <SidePanel
             currentQuiz={currentQuiz}
-            createNewQuizQuestion={createNewQuizQuestion}
             currentQuestionData={currentQuestionData}
             changeQuestion={handleChangeQuestion}
             handleNewQuestion={handleNewQuestionClick}
@@ -370,9 +410,10 @@ const CreateQuiz = (props) => {
         <Grid item xs={9} md={10} lg={10} xl={11}>
           <QuestionCreator
             currentQuestionData={currentQuestionData}
-            quizAnswers={quizAnswers}
-            handleAnswerValueChange={handleAnswerValueChange}
-            handleAnswerCorrectChange={handleAnswerCorrectChange}
+            answers={answers}
+            handleAnswerValueChange={handleQuizAnswerValueChange}
+            handleAnswerCorrectChange={handleQuizAnswerCorrectChange}
+            handleAnswerCorrectToggle={handleTrueFalseAnswerCorrectToggle}
             handleQuestionTextChange={handleQuestionTextChange}
             handleQuestionTextChangeWithValue={
               handleQuestionTextChangeWithValue

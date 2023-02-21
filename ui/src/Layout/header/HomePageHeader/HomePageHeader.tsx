@@ -4,11 +4,12 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import CreateQuizDialog from "../../../common/EditQuizDialog/EditQuizDialog";
 import { useDispatch } from "react-redux";
 import { quizChanged } from "../../../redux/features/currentQuizSlice";
-import { createNewQuizQuestion } from "../../../pages/quiz/helperMethods";
+import { createNewQuestion } from "../../../pages/quiz/helperMethods";
 import { useHistory } from "react-router-dom";
 import quizDialogReducer, {
   actionTypes,
 } from "../quizDialogReducer/quizDialogReducer";
+import { NewQuestionType } from "../../../common/types";
 
 interface HomePageHeaderProps {
   handleAccountOptionsOpen: (event) => void;
@@ -47,7 +48,7 @@ export default function HomePageHeader(props: HomePageHeaderProps) {
         id: 0,
         name: createQuizDialog.quizName,
         description: createQuizDialog.quizDescription,
-        questions: [createNewQuizQuestion(1)],
+        questions: [createNewQuestion(1, NewQuestionType.QUIZ)],
       })
     );
     history.push("/quiz", { name: createQuizDialog.quizName });

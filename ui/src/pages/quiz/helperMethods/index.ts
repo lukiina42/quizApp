@@ -1,42 +1,43 @@
 import {
+  QuizQuestionAnswer,
+  initialQuizAnswers,
   LanguageType,
   NewQuestionType,
-  QuizAnswers,
+  Question,
 } from "../../../common/types";
 import { QuestionData, ValidationStatus } from "../types";
 
 //TODO rename type to questionType. Not all answers are then displayed in a new question
 //Creates new question with empty values
-export const createNewQuizQuestion = (key: number) => {
-  return {
-    key: key,
-    questionType: NewQuestionType.QUIZ,
-    name: "",
-    question: {
-      value: "",
-      language: LanguageType.C,
-    },
-    topLeftAnswer: {
-      answerType: "QUIZ" as "QUIZ",
-      value: "",
-      isCorrect: false,
-    },
-    topRightAnswer: {
-      answerType: "QUIZ" as "QUIZ",
-      value: "",
-      isCorrect: false,
-    },
-    bottomLeftAnswer: {
-      answerType: "QUIZ" as "QUIZ",
-      value: "",
-      isCorrect: false,
-    },
-    bottomRightAnswer: {
-      answerType: "QUIZ" as "QUIZ",
-      value: "",
-      isCorrect: false,
-    },
-  };
+export const createNewQuestion = (
+  key: number,
+  type: NewQuestionType
+): Question => {
+  switch (type) {
+    case NewQuestionType.QUIZ:
+      return {
+        key: key,
+        questionType: NewQuestionType.QUIZ,
+        name: "",
+        question: {
+          value: "",
+          language: LanguageType.C,
+        },
+        answers: initialQuizAnswers,
+      };
+    case NewQuestionType.TRUEFALSE:
+      return {
+        key: key,
+        questionType: NewQuestionType.TRUEFALSE,
+        name: "",
+        question: {
+          value: "",
+          language: LanguageType.C,
+        },
+        isCorrect: true,
+        answers: [],
+      };
+  }
 };
 
 //Counts amount of enters in the text, used in answer text field
@@ -50,17 +51,12 @@ export function countBreakLines(text: string): number {
   return breakLines;
 }
 
-//validates current question
-export function validateQuestionInput(
-  currentQuestionData: QuestionData,
-  quizAnswers: QuizAnswers
-): ValidationStatus {
+const validateQuizQuestionAnswers = (
+  quizAnswers: QuizQuestionAnswer[]
+): ValidationStatus => {
   let emptyAnswerValues = 0;
-  if (!currentQuestionData.questionName) {
-    return ValidationStatus.NAMEOFQUESTION;
-  }
   //count empty answers
-  Object.entries(quizAnswers).forEach(([, answer]) => {
+  Object.entries(quizAnswers as QuizQuestionAnswer[]).forEach(([, answer]) => {
     if (answer.value === "") {
       emptyAnswerValues += 1;
     }
@@ -70,37 +66,51 @@ export function validateQuestionInput(
     return ValidationStatus.TWOANSWERS;
   }
   return ValidationStatus.OK;
+};
+
+//validates current question
+export function validateQuestionInput(
+  currentQuestionData: QuestionData,
+  quizAnswers?: QuizQuestionAnswer[]
+): ValidationStatus {
+  if (!currentQuestionData.questionName) {
+    return ValidationStatus.NAMEOFQUESTION;
+  }
+  if (currentQuestionData.questionType === NewQuestionType.QUIZ) {
+    return validateQuizQuestionAnswers(quizAnswers!);
+  }
+  return ValidationStatus.OK;
 }
 
 export function createQuestionFromStates(
   currentQuestionData: QuestionData,
-  quizAnswers: QuizAnswers
+  answers: QuizQuestionAnswer[]
 ) {
-  const newQuestion = {
+  let questionMetadata = {
     key: currentQuestionData.questionKey,
     questionType: currentQuestionData.questionType,
     name: currentQuestionData.questionName,
-    question: {
-      value: currentQuestionData.questionText,
-      language: currentQuestionData.questionLanguage,
-    },
-    topLeftAnswer: {
-      value: quizAnswers.topLeftAnswer.value,
-      isCorrect: quizAnswers.topLeftAnswer.isCorrect,
-    },
-    topRightAnswer: {
-      value: quizAnswers.topRightAnswer.value,
-      isCorrect: quizAnswers.topRightAnswer.isCorrect,
-    },
-    bottomLeftAnswer: {
-      value: quizAnswers.bottomLeftAnswer.value,
-      isCorrect: quizAnswers.bottomLeftAnswer.isCorrect,
-    },
-    bottomRightAnswer: {
-      value: quizAnswers.bottomRightAnswer.value,
-      isCorrect: quizAnswers.bottomRightAnswer.isCorrect,
-    },
   };
+  let newQuestion = {};
+  if (currentQuestionData.questionType === NewQuestionType.QUIZ) {
+    newQuestion = {
+      ...questionMetadata,
+      question: {
+        value: currentQuestionData.questionText,
+        language: currentQuestionData.questionLanguage,
+      },
+      answers,
+    };
+  } else if (currentQuestionData.questionType === NewQuestionType.TRUEFALSE) {
+    newQuestion = {
+      ...questionMetadata,
+      question: {
+        value: currentQuestionData.questionText,
+        language: currentQuestionData.questionLanguage,
+      },
+      isCorrect: currentQuestionData.questionIsCorrect,
+    };
+  }
   return newQuestion;
 }
 
@@ -113,4 +123,8 @@ export const toastSettings = {
   pauseOnHover: true,
   draggable: true,
   progress: undefined,
+};
+
+export const sortQuizAnswers = (answers: QuizQuestionAnswer[]) => {
+  return answers.sort((a, b) => -(a.key - b.key));
 };

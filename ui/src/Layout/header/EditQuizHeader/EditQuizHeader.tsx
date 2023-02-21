@@ -1,5 +1,5 @@
 import React from "react";
-import { Grid, Button, Box, Typography } from "@mui/material";
+import { Grid, Box, Typography } from "@mui/material";
 import EditQuizDialog from "../../../common/EditQuizDialog/EditQuizDialog";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import quizDialogReducer, {

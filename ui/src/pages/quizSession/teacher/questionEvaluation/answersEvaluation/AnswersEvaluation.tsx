@@ -107,7 +107,7 @@ const AnswersEvaluation = (props: AnswersEvaluationProps) => {
         //margin evens the spacing issues with grid
         sx={{ width: "100%", margin: "0 0 0 -4px" }}
       >
-        <Grid item xs={6}>
+        {/* <Grid item xs={6}>
           <Grid container direction={"row"}>
             <TextField
               {...textFieldStaticProps}
@@ -199,7 +199,7 @@ const AnswersEvaluation = (props: AnswersEvaluationProps) => {
               </div>
             </CustomTooltip>
           </Grid>
-        </Grid>
+        </Grid> */}
       </Grid>
     </>
   );
