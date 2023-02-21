@@ -2,6 +2,7 @@ package cz.cvut.fel.sem.mapper;
 
 import cz.cvut.fel.sem.dto.question.AnswerDto;
 import cz.cvut.fel.sem.dto.question.QuestionDto;
+import cz.cvut.fel.sem.exception.NotFoundException;
 import cz.cvut.fel.sem.model.quizQuestion.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,16 +29,18 @@ public class QuestionMapper {
                 questionDto.getKey(),
                 questionDto.getQuestionType(),
                 questionDto.getName(),
+                questionDto.isCorrect(),
                 null,
                 null,
                 quiz
         );
         question.setQuestionText(questionTextMapper.mapToModel(questionDto.getQuestionText(), question));
         List<Answer> answerList = new ArrayList<>();
-        answerList.add(answerMapper.mapToModel(questionDto.getTopRightAnswer(), AnswerPosition.TOPRIGHT, question));
-        answerList.add(answerMapper.mapToModel(questionDto.getTopLeftAnswer(), AnswerPosition.TOPLEFT, question));
-        answerList.add( answerMapper.mapToModel(questionDto.getBottomRightAnswer(), AnswerPosition.BOTTOMRIGHT, question));
-        answerList.add(answerMapper.mapToModel(questionDto.getBottomLeftAnswer(), AnswerPosition.BOTTOMLEFT, question));
+        if(questionDto.getQuestionType() == QuestionType.QUIZ) {
+            for (AnswerDto answerDto : questionDto.getAnswers()) {
+                answerList.add(answerMapper.mapToModel(answerDto, question));
+            }
+        }
         question.setAnswers(answerList);
         return question;
     }
@@ -51,19 +54,17 @@ public class QuestionMapper {
     }
 
     public QuestionDto mapOneQuestionToDto(Question question){
-        AnswerDto topRightAnswer = answerMapper.getSpecificAnswerDtoFromList(question.getAnswers(), AnswerPosition.TOPRIGHT);
-        AnswerDto topLeftAnswer = answerMapper.getSpecificAnswerDtoFromList(question.getAnswers(), AnswerPosition.TOPLEFT);
-        AnswerDto bottomRightAnswer = answerMapper.getSpecificAnswerDtoFromList(question.getAnswers(), AnswerPosition.BOTTOMRIGHT);
-        AnswerDto bottomLeftAnswer = answerMapper.getSpecificAnswerDtoFromList(question.getAnswers(), AnswerPosition.BOTTOMLEFT);
+        List<AnswerDto> answers = new ArrayList<>();
+        for(Answer answer : question.getAnswers()){
+            answers.add(answerMapper.mapToDto(answer));
+        }
         return new QuestionDto(
             question.getKey(),
             question.getQuestionType(),
             question.getName(),
             questionTextMapper.mapToDto(question.getQuestionText()),
-            topLeftAnswer,
-            topRightAnswer,
-            bottomLeftAnswer,
-            bottomRightAnswer
+            question.isCorrect(),
+            answers
         );
     }
 

@@ -194,6 +194,10 @@ const CreateQuiz = (props) => {
         questionText: newQuestion.question.value,
         questionLanguage: newQuestion.question.language,
         questionType: newQuestion.questionType,
+        questionIsCorrect:
+          newQuestion.questionType === NewQuestionType.TRUEFALSE
+            ? newQuestion.isCorrect!
+            : false,
       };
     });
 
@@ -353,6 +357,8 @@ const CreateQuiz = (props) => {
       id: currentQuiz.id === 0 ? null : currentQuiz.id,
       questions: currentQuizRef.current.questions,
     };
+
+    debugger;
 
     saveQuizMutation.mutate({
       bodyToSave,

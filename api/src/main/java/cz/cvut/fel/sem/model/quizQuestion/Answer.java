@@ -15,6 +15,7 @@ import javax.persistence.*;
 @Table(name = "answer")
 public class Answer extends AbstractEntity {
     private String value;
+    private Integer key;
     private boolean isCorrect;
     @Enumerated(EnumType.STRING)
     private AnswerPosition answerPosition;

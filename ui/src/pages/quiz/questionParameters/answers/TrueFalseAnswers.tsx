@@ -69,6 +69,8 @@ const TrueFalseAnswers = (props: TrueFalseAnswersProps) => {
   const { handleAnswerCorrectToggle, disabled, allowCorrectSwitch, isCorrect } =
     props;
 
+  console.log(isCorrect);
+
   return (
     <>
       <Grid
