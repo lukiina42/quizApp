@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useReducer, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { Grid } from "@mui/material";
 import SidePanel from "./sidePanel/SidePanel";
@@ -25,6 +25,9 @@ import { QuestionData } from "./types/index";
 import { saveQuiz } from "../../api/quizApi";
 import { useMutation } from "react-query";
 import { useSelector } from "react-redux";
+import questionDataReducer, {
+  actionTypes,
+} from "./questionDataReducer/questionDataReducer";
 
 //The parent component in which the user creates or edits the quiz. It has 2 child components: side panel
 // where user can switch between the questions and questionCreator when user can set the parameters of the question
@@ -43,26 +46,23 @@ const CreateQuiz = (props) => {
 
   const [currentQuiz, setCurrentQuiz] = useState<Quiz>(quiz);
 
-  const [currentQuestionData, setCurrentQuestionData] = useState<QuestionData>({
-    questionKey: currentQuizRef.current.questions[0].key,
-    questionName: currentQuizRef.current.questions[0].name,
-    questionText: currentQuizRef.current.questions[0].question.value,
-    questionLanguage: currentQuizRef.current.questions[0].question.language,
-    questionType: currentQuizRef.current.questions[0].questionType,
-    questionIsCorrect: currentQuizRef.current.questions[0].isCorrect
-      ? currentQuizRef.current.questions[0].isCorrect
-      : false,
-  });
+  const [currentQuestionData, dispatchQuestionData] = useReducer(
+    questionDataReducer,
+    {
+      questionKey: quiz.questions[0].key,
+      questionName: quiz.questions[0].name,
+      questionText: quiz.questions[0].question.value,
+      questionLanguage: quiz.questions[0].question.language,
+      questionType: quiz.questions[0].questionType,
+      questionIsCorrect: quiz.questions[0].isCorrect
+        ? quiz.questions[0].isCorrect
+        : false,
+    }
+  );
 
   //Contains info about which answer values.
-  //TODO add interface from types here
   const [answers, setAnswers] = useState<QuizQuestionAnswer[]>(
-    // currentQuizRef.current.questions[0].questionType === NewQuestionType.QUIZ
-    //   ? sortQuizAnswers(
-    //       currentQuizRef.current.questions[0].answers as QuizQuestionAnswer[]
-    //     )
-    //   : []
-    currentQuizRef.current.questions[0].answers
+    quiz.questions[0].answers
   );
 
   const saveQuizMutation = useMutation(saveQuiz, {
@@ -71,33 +71,36 @@ const CreateQuiz = (props) => {
     },
   });
 
-  const handleLanguageChange = (event) =>
-    setCurrentQuestionData((prevQuestionData) => {
-      return { ...prevQuestionData, questionLanguage: event.target.value };
+  const handleLanguageChange = (event) => {
+    dispatchQuestionData({
+      type: actionTypes.LANGUAGECHANGE,
+      language: event.target.value,
     });
-
-  const handleLanguageChangeWithValue = (value: LanguageType) =>
-    setCurrentQuestionData((prevQuestionData) => {
-      return { ...prevQuestionData, questionLanguage: value };
-    });
+  };
 
   //Handles question text change
-  const handleQuestionTextChange = (event): void =>
-    setCurrentQuestionData((prevQuestionData) => {
-      return { ...prevQuestionData, questionText: event.target.value };
+  const handleQuestionTextChange = (event): void => {
+    dispatchQuestionData({
+      action: actionTypes.QUESTIONTEXTCHANGE,
+      text: event.target.value,
     });
+  };
 
   //Handles question text change with value
-  const handleQuestionTextChangeWithValue = (value: string) =>
-    setCurrentQuestionData((prevQuestionData) => {
-      return { ...prevQuestionData, questionText: value };
+  const handleQuestionTextChangeWithValue = (value: string) => {
+    dispatchQuestionData({
+      action: actionTypes.QUESTIONTEXTCHANGE,
+      text: value,
     });
+  };
 
   //Handles plain text question change
-  const handleQuestionNameChange = (event) =>
-    setCurrentQuestionData((prevQuestionData) => {
-      return { ...prevQuestionData, questionName: event.target.value };
+  const handleQuestionNameChange = (event) => {
+    dispatchQuestionData({
+      action: actionTypes.QUESTIONNAMECHANGE,
+      questionName: event.target.value,
     });
+  };
 
   const handleQuizAnswerCorrectChange = (key: string) => {
     setAnswers(
@@ -114,12 +117,7 @@ const CreateQuiz = (props) => {
   };
 
   const handleTrueFalseAnswerCorrectToggle = () => {
-    setCurrentQuestionData((prevQuestionData) => {
-      return {
-        ...prevQuestionData,
-        questionIsCorrect: !prevQuestionData.questionIsCorrect,
-      };
-    });
+    dispatchQuestionData({ action: actionTypes.ISCORRECTTOGGLE });
   };
 
   //Handles change in one of the answers, handles the input
@@ -186,20 +184,7 @@ const CreateQuiz = (props) => {
 
     const newQuestion = currentQuiz.questions[key];
 
-    setCurrentQuestionData((prevCurrentQuestionData) => {
-      return {
-        ...prevCurrentQuestionData,
-        questionKey: newQuestion.key,
-        questionName: newQuestion.name,
-        questionText: newQuestion.question.value,
-        questionLanguage: newQuestion.question.language,
-        questionType: newQuestion.questionType,
-        questionIsCorrect:
-          newQuestion.questionType === NewQuestionType.TRUEFALSE
-            ? newQuestion.isCorrect!
-            : false,
-      };
-    });
+    dispatchQuestionData({ action: actionTypes.LOADNEXTQUESTION, newQuestion });
 
     switch (newQuestion.questionType) {
       case NewQuestionType.QUIZ:
@@ -358,8 +343,6 @@ const CreateQuiz = (props) => {
       questions: currentQuizRef.current.questions,
     };
 
-    debugger;
-
     saveQuizMutation.mutate({
       bodyToSave,
       userId: currentUser.id,
@@ -426,7 +409,6 @@ const CreateQuiz = (props) => {
             }
             handleQuestionNameChange={handleQuestionNameChange}
             handleLanguageChange={handleLanguageChange}
-            handleLanguageChangeWithValue={handleLanguageChangeWithValue}
             handleSaveQuizButton={handleSaveQuizButton}
             handleExitButton={handleExitButton}
           />

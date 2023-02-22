@@ -58,7 +58,6 @@ export default function EditQuizHeader(props: EditQuizHeaderProps) {
       description: editQuizDialog.quizDescription,
       name: editQuizDialog.quizName,
     };
-    debugger;
     saveQuizMutation.mutate({
       bodyToSave,
       userId: currentUserId,

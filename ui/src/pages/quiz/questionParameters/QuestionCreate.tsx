@@ -42,7 +42,6 @@ interface QuestionCreatorProps {
   handleQuestionTextChange: (event) => void;
   handleQuestionTextChangeWithValue: (event) => void;
   handleLanguageChange: (event) => void;
-  handleLanguageChangeWithValue: (language: LanguageType) => void;
   handleQuestionNameChange: (event) => void;
   handleSaveQuizButton: (event) => void;
   handleExitButton: () => void;
