@@ -12,10 +12,15 @@ import {
 
 import "./index.css";
 import { QuestionEvaluationType } from "../types";
-import { Question, LanguageType } from "../../../../common/types";
+import {
+  Question,
+  LanguageType,
+  NewQuestionType,
+} from "../../../../common/types";
 import CustomCodeEditor from "../../../quiz/questionParameters/codeEditor/CustomCodeEditor";
 import CustomTooltip from "./CustomTooltip";
-import AnswersEvaluation from "./answersEvaluation/AnswersEvaluation";
+import AnswersEvaluation from "./answersEvaluation/quizAnswersEvaluation/AnswersEvaluation";
+import TrueFalseAnswersEvaluation from "./answersEvaluation/trueFalseAnswersEvaluation/TrueFalseAnswersEvaluation";
 
 interface QuestionEvaluationProps {
   questionEvaluation: QuestionEvaluationType | null;
@@ -90,10 +95,17 @@ const QuestionEvaluation = ({
           />
         </div>
         <div className="answersWrapper">
-          <AnswersEvaluation
-            currentQuestion={currentQuestion}
-            questionEvaluation={questionEvaluation}
-          />
+          {currentQuestion?.questionType === NewQuestionType.QUIZ ? (
+            <AnswersEvaluation
+              currentQuestion={currentQuestion}
+              questionEvaluation={questionEvaluation}
+            />
+          ) : (
+            <TrueFalseAnswersEvaluation
+              isCorrect={currentQuestion?.isCorrect as boolean}
+              questionEvaluation={questionEvaluation as QuestionEvaluationType}
+            />
+          )}
         </div>
         <div className="barWrapper">
           <ResponsiveContainer width="100%" height="100%">

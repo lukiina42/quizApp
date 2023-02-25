@@ -1,5 +1,7 @@
 package cz.cvut.fel.sem.dto.session.fromStudent;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import cz.cvut.fel.sem.model.quizQuestion.AnswerPosition;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,10 +13,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AnswerToQuestionDto {
-    private Long sessionId;
-    private int questionKey;
-    private boolean topLeftAnswer;
-    private boolean topRightAnswer;
-    private boolean bottomLeftAnswer;
-    private boolean bottomRightAnswer;
+
+    private AnswerPosition position;
+    @JsonProperty("isCorrect")
+    private boolean isCorrect;
 }

@@ -45,7 +45,7 @@ const textFieldStaticProps = {
   variant: "outlined" as any,
 };
 
-const getBackgroundColor = (position: string) => {
+export const getBackgroundColor = (position: string) => {
   switch (position) {
     case QuizQuestionPosition.TOPLEFT:
       return "#66A4FF";

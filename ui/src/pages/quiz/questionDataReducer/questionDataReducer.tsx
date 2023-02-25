@@ -6,7 +6,9 @@ export const actionTypes = {
   QUESTIONTEXTCHANGE: "QUESTIONTEXTCHANGE",
   QUESTIONNAMECHANGE: "QUESTIONNAMECHANGE",
   ISCORRECTTOGGLE: "ISCORRECTTOGGLE",
-  LOADNEXTQUESTION: "LOADNEWQUESTION",
+  LOADNEXTQUESTION: "LOADNEXTQUESTION",
+  LOADNEWQUESTION: "LOADNEWQUESTION",
+  DECREASEQUESTIONKEY: "DECREASEQUESTIONKEY",
 };
 
 export default function questionDataReducer(
@@ -30,7 +32,7 @@ export default function questionDataReducer(
       };
     }
     case actionTypes.LOADNEXTQUESTION: {
-      const nextQuestion = action.newQuestion;
+      const nextQuestion = action.nextQuestion;
       return {
         ...currentQuestionData,
         questionKey: nextQuestion.key,
@@ -42,6 +44,25 @@ export default function questionDataReducer(
           nextQuestion.questionType === NewQuestionType.TRUEFALSE
             ? nextQuestion.isCorrect!
             : false,
+      };
+    }
+    case actionTypes.LOADNEWQUESTION: {
+      const nextQuestion = action.newQuestion;
+      return {
+        ...currentQuestionData,
+        questionKey: nextQuestion.key,
+        questionName: nextQuestion.name,
+        questionText: nextQuestion.question.value,
+        questionLanguage: nextQuestion.question.language,
+        questionType: nextQuestion.questionType,
+        questionIsCorrect:
+          nextQuestion.questionType === NewQuestionType.QUIZ ? false : true,
+      };
+    }
+    case actionTypes.DECREASEQUESTIONKEY: {
+      return {
+        ...currentQuestionData,
+        questionKey: currentQuestionData.questionKey - 1,
       };
     }
     default: {

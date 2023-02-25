@@ -2,9 +2,15 @@ import React from "react";
 import { Grid, TextField } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import "react-toastify/dist/ReactToastify.css";
-import { QuizQuestionAnswer, LanguageType } from "../../../../common/types";
+import {
+  QuizQuestionAnswer,
+  LanguageType,
+  Question,
+  NewQuestionType,
+} from "../../../../common/types";
 import QuizAnswers from "../../../quiz/questionParameters/answers/QuizAnswers";
 import Editor from "../../../quiz/questionParameters/codeEditor/CustomCodeEditor";
+import TrueFalseAnswers from "../../../quiz/questionParameters/answers/TrueFalseAnswers";
 
 const useStyles = makeStyles((theme) => ({
   textField: {
@@ -18,18 +24,15 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 interface QuestionDisplayProps {
-  quizAnswers: QuizQuestionAnswer[];
-  questionName?: string;
-  codeTextProp?: string;
-  languageProp?: LanguageType;
+  currentQuestion: Question;
 }
 
 //Represents the right side of the page, where user sets parameters of the question
 const QuestionDisplay = (props: QuestionDisplayProps) => {
-  const { quizAnswers, questionName, codeTextProp, languageProp } = props;
+  const { currentQuestion } = props;
 
   //need to set the value of name text field in the question if the is not updating the quiz (which means he is presenting it)
-  const nameDynamicValue = { value: questionName };
+  const nameDynamicValue = { value: currentQuestion.name };
 
   //Styling classes
   const classes = useStyles();
@@ -70,7 +73,7 @@ const QuestionDisplay = (props: QuestionDisplayProps) => {
         <Grid item xs width={"80%"} sx={{ maxHeight: "340px" }}>
           <Grid container direction={"row"} spacing={0} sx={{ height: "100%" }}>
             <Grid item xs={12}>
-              {languageProp === LanguageType.PLAINTEXT ? (
+              {currentQuestion.question.language === LanguageType.PLAINTEXT ? (
                 <TextField
                   id="theQuestion"
                   //@ts-ignore
@@ -79,12 +82,15 @@ const QuestionDisplay = (props: QuestionDisplayProps) => {
                   maxRows={8}
                   placeholder="Write your question here"
                   fullWidth
-                  value={codeTextProp}
+                  value={currentQuestion.question.value}
                   className={classes.textField}
                   disabled
                 />
               ) : (
-                <Editor language={languageProp!} value={codeTextProp!} />
+                <Editor
+                  language={currentQuestion.question.language}
+                  value={currentQuestion.question.value}
+                />
               )}
             </Grid>
           </Grid>
@@ -95,11 +101,15 @@ const QuestionDisplay = (props: QuestionDisplayProps) => {
           width={"80%"}
           sx={{ minHeight: "225px", display: "flex", alignItems: "center" }}
         >
-          <QuizAnswers
-            quizAnswers={quizAnswers as QuizQuestionAnswer[]}
-            disabled
-            handleAnswerCorrectChange={() => {}}
-          />
+          {currentQuestion.questionType === NewQuestionType.QUIZ ? (
+            <QuizAnswers
+              quizAnswers={currentQuestion.answers}
+              disabled
+              handleAnswerCorrectChange={() => {}}
+            />
+          ) : (
+            <TrueFalseAnswers hideAnswer={true} />
+          )}
         </Grid>
       </Grid>
     </>

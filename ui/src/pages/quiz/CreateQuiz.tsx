@@ -6,7 +6,6 @@ import QuestionCreator from "./questionParameters/QuestionCreate";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
-  LanguageType,
   NewQuestionType,
   Question,
   QuizQuestionAnswer,
@@ -21,7 +20,6 @@ import {
   validateQuestionInput,
 } from "./helperMethods/index";
 import { useUser } from "../../context/UserContext";
-import { QuestionData } from "./types/index";
 import { saveQuiz } from "../../api/quizApi";
 import { useMutation } from "react-query";
 import { useSelector } from "react-redux";
@@ -81,7 +79,7 @@ const CreateQuiz = (props) => {
   //Handles question text change
   const handleQuestionTextChange = (event): void => {
     dispatchQuestionData({
-      action: actionTypes.QUESTIONTEXTCHANGE,
+      type: actionTypes.QUESTIONTEXTCHANGE,
       text: event.target.value,
     });
   };
@@ -89,7 +87,7 @@ const CreateQuiz = (props) => {
   //Handles question text change with value
   const handleQuestionTextChangeWithValue = (value: string) => {
     dispatchQuestionData({
-      action: actionTypes.QUESTIONTEXTCHANGE,
+      type: actionTypes.QUESTIONTEXTCHANGE,
       text: value,
     });
   };
@@ -97,7 +95,7 @@ const CreateQuiz = (props) => {
   //Handles plain text question change
   const handleQuestionNameChange = (event) => {
     dispatchQuestionData({
-      action: actionTypes.QUESTIONNAMECHANGE,
+      type: actionTypes.QUESTIONNAMECHANGE,
       questionName: event.target.value,
     });
   };
@@ -117,7 +115,7 @@ const CreateQuiz = (props) => {
   };
 
   const handleTrueFalseAnswerCorrectToggle = () => {
-    dispatchQuestionData({ action: actionTypes.ISCORRECTTOGGLE });
+    dispatchQuestionData({ type: actionTypes.ISCORRECTTOGGLE });
   };
 
   //Handles change in one of the answers, handles the input
@@ -184,7 +182,10 @@ const CreateQuiz = (props) => {
 
     const newQuestion = currentQuiz.questions[key];
 
-    dispatchQuestionData({ action: actionTypes.LOADNEXTQUESTION, newQuestion });
+    dispatchQuestionData({
+      type: actionTypes.LOADNEXTQUESTION,
+      nextQuestion: newQuestion,
+    });
 
     switch (newQuestion.questionType) {
       case NewQuestionType.QUIZ:
@@ -223,15 +224,9 @@ const CreateQuiz = (props) => {
         };
       });
 
-      setCurrentQuestionData((prevCurrentQuestionData) => {
-        return {
-          ...prevCurrentQuestionData,
-          questionKey: newQuestion.key,
-          questionName: newQuestion.name,
-          questionText: newQuestion.question.value,
-          questionLanguage: newQuestion.question.language,
-          questionType: newQuestion.questionType,
-        };
+      dispatchQuestionData({
+        type: actionTypes.LOADNEXTQUESTION,
+        nextQuestion: newQuestion,
       });
       setAnswers(newQuestion.answers);
     } else if (currentQuestionData.questionType === NewQuestionType.TRUEFALSE) {
@@ -248,17 +243,7 @@ const CreateQuiz = (props) => {
         };
       });
 
-      setCurrentQuestionData((prevCurrentQuestionData) => {
-        return {
-          ...prevCurrentQuestionData,
-          questionKey: newQuestion.key,
-          questionName: newQuestion.name,
-          questionText: newQuestion.question.value,
-          questionLanguage: newQuestion.question.language,
-          questionType: newQuestion.questionType,
-          questionIsCorrect: true,
-        };
-      });
+      dispatchQuestionData({ type: actionTypes.LOADNEWQUESTION, newQuestion });
       setAnswers(newQuestion.answers);
     }
   };
@@ -281,7 +266,7 @@ const CreateQuiz = (props) => {
       //Edit the keys of remaining questions
       //If there are questions 1, 2 and 3 and user deletes 2,
       //we don't want question 1 and question 3 remain on the page
-      let question = updatedQuestions[i];
+      let question = { ...updatedQuestions[i] };
       question.key = i + 1;
       updatedQuestions[i] = question;
     }
@@ -299,24 +284,13 @@ const CreateQuiz = (props) => {
         key <= updatedQuestions.length
           ? updatedQuestions[key - 1]
           : updatedQuestions[key - 2];
-      setCurrentQuestionData((prevCurrentQuestionData) => {
-        return {
-          ...prevCurrentQuestionData,
-          questionKey: nextQuestion.key,
-          questionName: nextQuestion.name,
-          questionText: nextQuestion.question.value,
-          questionLanguage: nextQuestion.question.language,
-          questionType: nextQuestion.questionType,
-        };
+      dispatchQuestionData({
+        type: actionTypes.LOADNEXTQUESTION,
+        nextQuestion,
       });
       setAnswers(nextQuestion.answers);
     } else if (currentQuestionData.questionKey > key) {
-      setCurrentQuestionData((prevData) => {
-        return {
-          ...prevData,
-          questionKey: prevData.questionKey - 1,
-        };
-      });
+      dispatchQuestionData({ type: actionTypes.DECREASEQUESTIONKEY });
     }
   };
 

@@ -15,4 +15,12 @@ public class QuestionEvaluationDto {
     private int questionKey;
     private Map<String, Integer> amountsOfPositiveAnswersToEachAnswer;
     private MessageType messageType;
+
+    //is used when the evaluation is of the true false question
+    public QuestionEvaluationDto(int amountOfAnswersTotal, int amountOfCorrectAnswers, int questionKey, MessageType messageType) {
+        this.amountOfAnswersTotal = amountOfAnswersTotal;
+        this.amountOfCorrectAnswers = amountOfCorrectAnswers;
+        this.questionKey = questionKey;
+        this.messageType = messageType;
+    }
 }

@@ -1,6 +1,30 @@
-import { TextField, Grid, InputAdornment } from "@mui/material";
-import { makeStyles } from "@mui/styles";
+import React from "react";
+import { TextField, Grid, InputAdornment, Tooltip } from "@mui/material";
 import { Check, Clear } from "@mui/icons-material";
+import { QuestionEvaluationType } from "../../../types";
+import { tooltipClasses } from "@mui/material";
+import { makeStyles, styled } from "@mui/styles";
+
+//Custom styling of the tooltip, which gets displayed, when user hoovers over thumbs up and down icons in the answers field
+const CustomTooltip = styled(({ className, ...props }) => (
+  <Tooltip
+    title={"Submitted / Total"}
+    placement="top"
+    arrow
+    {...props}
+    classes={{ popper: className }}
+  />
+))({
+  [`& .${tooltipClasses.tooltip}`]: {
+    maxWidth: 160,
+    padding: 10,
+    textAlign: "center",
+    backgroundColor: "#373737",
+  },
+  [`& .${tooltipClasses.arrow}`]: {
+    color: "#373737",
+  },
+});
 
 //Custom styling of the answer text fields
 const useStyles = makeStyles(() => ({
@@ -54,35 +78,35 @@ const textFieldStaticProps = {
 };
 
 interface TrueFalseAnswersProps {
-  handleAnswerCorrectToggle?: () => void;
-  hideAnswer?: boolean;
-  allowCorrectSwitch?: boolean;
-  isCorrect?: boolean;
+  isCorrect: boolean;
+  questionEvaluation?: QuestionEvaluationType;
+  handleAnswerClick?: (answer: boolean) => void;
 }
 
 //Displays the answers in current question. The teacher can write into them when he is editting the question, but they are disabled
 // and only displayed when teacher is presenting the quiz to students
-const TrueFalseAnswers = (props: TrueFalseAnswersProps) => {
+const TrueFalseAnswersEvaluation = (props: TrueFalseAnswersProps) => {
   //Styling classes
   const classes = useStyles();
 
-  const {
-    handleAnswerCorrectToggle,
-    hideAnswer,
-    allowCorrectSwitch,
-    isCorrect,
-  } = props;
+  const { questionEvaluation, isCorrect, handleAnswerClick } = props;
+
+  const isEvaluation = handleAnswerClick ? false : true;
+
+  const handleAnswerCurry = (answer: boolean) => {
+    return handleAnswerClick ? (e) => handleAnswerClick(answer) : () => {};
+  };
 
   return (
     <>
       <Grid
         container
         direction={"row"}
-        spacing={hideAnswer ? 2 : 1}
+        spacing={isEvaluation ? 1 : 4}
         justifyContent="center"
         alignItems="center"
         //margin evens the spacing issues with grid
-        sx={{ width: "100%", margin: hideAnswer ? 0 : "0 0 0 -8px" }}
+        sx={{ width: "100%", margin: "0 0 0 -8px" }}
       >
         <Grid item xs={6}>
           <TextField
@@ -91,7 +115,6 @@ const TrueFalseAnswers = (props: TrueFalseAnswersProps) => {
             className={classes.answer}
             id={"true"}
             //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
-            onClick={handleAnswerCorrectToggle}
             value={"\nTrue"}
             inputProps={{ style: { textAlign: "center" } }}
             sx={{
@@ -99,14 +122,26 @@ const TrueFalseAnswers = (props: TrueFalseAnswersProps) => {
               fontWeight: "bold",
               fontSize: "1rem",
             }}
-            InputProps={{
-              endAdornment: !hideAnswer ? (
-                <AdornmentCustom isCorrect={isCorrect!} />
-              ) : (
-                <></>
-              ),
-            }}
+            onClick={handleAnswerCurry(true)}
+            InputProps={
+              isEvaluation
+                ? {
+                    endAdornment: <AdornmentCustom isCorrect={isCorrect} />,
+                  }
+                : {}
+            }
           />
+          {isEvaluation && (
+            <CustomTooltip>
+              <div className={"answerScore"}>
+                {isCorrect
+                  ? questionEvaluation?.amountOfCorrectAnswers
+                  : questionEvaluation!.amountOfAnswersTotal -
+                    questionEvaluation!.amountOfCorrectAnswers}
+                /{questionEvaluation?.amountOfAnswersTotal}
+              </div>
+            </CustomTooltip>
+          )}
         </Grid>
         <Grid item xs={6}>
           <TextField
@@ -115,26 +150,37 @@ const TrueFalseAnswers = (props: TrueFalseAnswersProps) => {
             className={classes.answer}
             id={"false"}
             //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
-            onClick={handleAnswerCorrectToggle}
             value={"\nFalse"}
             inputProps={{ style: { textAlign: "center" } }}
+            onClick={handleAnswerCurry(false)}
             sx={{
               backgroundColor: "#f28f93",
               fontWeight: "bold",
               fontSize: "1rem",
             }}
-            InputProps={{
-              endAdornment: !hideAnswer ? (
-                <AdornmentCustom isCorrect={!isCorrect} />
-              ) : (
-                <></>
-              ),
-            }}
+            InputProps={
+              isEvaluation
+                ? {
+                    endAdornment: <AdornmentCustom isCorrect={!isCorrect} />,
+                  }
+                : {}
+            }
           />
+          {isEvaluation && (
+            <CustomTooltip>
+              <div className={"answerScore"}>
+                {isCorrect
+                  ? questionEvaluation!.amountOfAnswersTotal -
+                    questionEvaluation!.amountOfCorrectAnswers
+                  : questionEvaluation?.amountOfCorrectAnswers}
+                /{questionEvaluation?.amountOfAnswersTotal}
+              </div>
+            </CustomTooltip>
+          )}
         </Grid>
       </Grid>
     </>
   );
 };
 
-export default TrueFalseAnswers;
+export default TrueFalseAnswersEvaluation;

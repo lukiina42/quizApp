@@ -1,4 +1,8 @@
-import { QuizQuestionAnswer, Quiz } from "../../../../common/types";
+import {
+  QuizQuestionAnswer,
+  Quiz,
+  NewQuestionType,
+} from "../../../../common/types";
 
 export interface ResponseMessage {
   responseType: string;
@@ -21,6 +25,7 @@ export interface ResultMessage extends ResponseMessage {
 export interface QuestionAnswer {
   sessionId: number;
   questionKey: number;
+  questionType: NewQuestionType;
   answers: QuizQuestionAnswer[];
 }
 

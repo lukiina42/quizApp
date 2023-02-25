@@ -370,10 +370,7 @@ const StartQuiz = (props) => {
             >
               <Grid item xs={11} sx={{ width: "100%" }}>
                 <QuestionDisplay
-                  questionName={currentQuestion?.name}
-                  codeTextProp={currentQuestion?.question.value}
-                  quizAnswers={currentQuestion?.answers as QuizQuestionAnswer[]}
-                  languageProp={currentQuestion?.question.language}
+                  currentQuestion={currentQuestion as Question}
                 />
               </Grid>
               <Grid item xs={1}>

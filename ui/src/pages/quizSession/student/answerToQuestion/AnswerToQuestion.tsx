@@ -21,7 +21,7 @@ function AnswerToQuestion({
       justifyContent={"center"}
       alignItems={"center"}
       sx={{
-        height: "calc(100vh - 45px)",
+        height: "calc(100vh - 3.5rem)",
         width: "100%",
       }}
     >

@@ -3,6 +3,7 @@ package cz.cvut.fel.sem.service.session;
 import cz.cvut.fel.sem.dto.session.forStudent.*;
 import cz.cvut.fel.sem.dto.session.forTeacher.*;
 import cz.cvut.fel.sem.dto.session.fromStudent.AnswerToQuestionDto;
+import cz.cvut.fel.sem.dto.session.fromStudent.AnswerToQuestionPayloadDto;
 import cz.cvut.fel.sem.dto.session.fromStudent.JoinSessionRequestDto;
 import cz.cvut.fel.sem.dto.session.fromTeacher.*;
 import cz.cvut.fel.sem.exception.InvalidKeyException;
@@ -10,6 +11,7 @@ import cz.cvut.fel.sem.exception.NotFoundException;
 import cz.cvut.fel.sem.mapper.QuizMapper;
 import cz.cvut.fel.sem.model.quizQuestion.AnswerPosition;
 import cz.cvut.fel.sem.model.quizQuestion.Question;
+import cz.cvut.fel.sem.model.quizQuestion.QuestionType;
 import cz.cvut.fel.sem.model.quizQuestion.Quiz;
 import cz.cvut.fel.sem.model.session.QuestionInSession;
 import cz.cvut.fel.sem.model.session.Session;
@@ -77,25 +79,29 @@ public class SessionService {
         //Those will be used when user answers to the question, the correct values will be checked and
         //amounts of answers to the question will be updated
         for(Question question : testedQuiz.getQuestions()){
-            QuestionInSession newQuestionInSession = new QuestionInSession(question.getKey(), newSession);
-            question.getAnswers().forEach(answer -> {
-                switch(answer.getAnswerPosition()){
-                    case TOPLEFT:
-                        newQuestionInSession.setTopLeftAnswerCorrect(answer.isCorrect());
-                        break;
-                    case TOPRIGHT:
-                        newQuestionInSession.setTopRightAnswerCorrect(answer.isCorrect());
-                        break;
-                    case BOTTOMLEFT:
-                        newQuestionInSession.setBottomLeftAnswerCorrect(answer.isCorrect());
-                        break;
-                    case BOTTOMRIGHT:
-                        newQuestionInSession.setBottomRightAnswerCorrect(answer.isCorrect());
-                        break;
-                    default:
-                        break;
-                }
-            });
+            QuestionInSession newQuestionInSession = new QuestionInSession(question.getKey(), question.getQuestionType(), newSession);
+            if(question.getQuestionType() == QuestionType.QUIZ) {
+                question.getAnswers().forEach(answer -> {
+                    switch (answer.getAnswerPosition()) {
+                        case TOPLEFT:
+                            newQuestionInSession.setTopLeftAnswerCorrect(answer.isCorrect());
+                            break;
+                        case TOPRIGHT:
+                            newQuestionInSession.setTopRightAnswerCorrect(answer.isCorrect());
+                            break;
+                        case BOTTOMLEFT:
+                            newQuestionInSession.setBottomLeftAnswerCorrect(answer.isCorrect());
+                            break;
+                        case BOTTOMRIGHT:
+                            newQuestionInSession.setBottomRightAnswerCorrect(answer.isCorrect());
+                            break;
+                        default:
+                            break;
+                    }
+                });
+            }else {
+                newQuestionInSession.setCorrect(question.isCorrect());
+            }
             newQuestionsInSessionList.add(newQuestionInSession);
         }
         newSession.setQuestionsInSession(newQuestionsInSessionList);
@@ -288,15 +294,38 @@ public class SessionService {
 
     /**
      * Private method used to determine whether student's answer is correct or not.
-     * @param answerToQuestionDto student's answer
+     * @param answers student's answer
      * @param questionInSession tested question, where correct answers are stored
      * @return true if all of the answers are correct, false otherwise
      */
-    private boolean isAnswerCorrect(AnswerToQuestionDto answerToQuestionDto, QuestionInSession questionInSession){
-        return answerToQuestionDto.isTopLeftAnswer() == questionInSession.isTopLeftAnswerCorrect() &&
-                answerToQuestionDto.isTopRightAnswer() == questionInSession.isTopRightAnswerCorrect() &&
-                answerToQuestionDto.isBottomLeftAnswer() == questionInSession.isBottomLeftAnswerCorrect() &&
-                answerToQuestionDto.isBottomRightAnswer() == questionInSession.isBottomRightAnswerCorrect();
+    private boolean isAnswerCorrect(List<AnswerToQuestionDto> answers, QuestionInSession questionInSession){
+        for(AnswerToQuestionDto answer : answers) {
+            switch (answer.getPosition()) {
+                case TOPLEFT:
+                    if (answer.isCorrect() != questionInSession.isTopLeftAnswerCorrect()) {
+                        return false;
+                    }
+                    break;
+                case TOPRIGHT:
+                    if (answer.isCorrect() != questionInSession.isTopRightAnswerCorrect()) {
+                        return false;
+                    }
+                    break;
+                case BOTTOMLEFT:
+                    if (answer.isCorrect() != questionInSession.isBottomLeftAnswerCorrect()) {
+                        return false;
+                    }
+                    break;
+                case BOTTOMRIGHT:
+                    if (answer.isCorrect() != questionInSession.isBottomRightAnswerCorrect()) {
+                        return false;
+                    }
+                    break;
+                default:
+                    throw new NotFoundException("Answer position " + answer.getPosition() + " not found");
+            }
+        }
+        return true;
     }
 
     /**
@@ -308,17 +337,17 @@ public class SessionService {
      * and amount of correctly answered questions.
      * After updating the question and student, it is checked whether all students answered to the question. If so,
      * message to the teacher is sent and teacher then displays question evaluation on his screen
-     * @param answerToQuestionDto student's answer to the question
+     * @param answerToQuestionPayloadDto student's answer to the question
      * @param userId student's identifier used to find him in the database
      */
-    public void handleStudentSubmitsAnswer(AnswerToQuestionDto answerToQuestionDto, String userId){
-        Objects.requireNonNull(answerToQuestionDto);
-        if(!sessionRepository.existsById(answerToQuestionDto.getSessionId())) {
-            throw new NotFoundException("The session with id " + answerToQuestionDto.getSessionId() + " was not found");
+    public void handleStudentSubmitsAnswer(AnswerToQuestionPayloadDto answerToQuestionPayloadDto, String userId){
+        Objects.requireNonNull(answerToQuestionPayloadDto);
+        if(!sessionRepository.existsById(answerToQuestionPayloadDto.getSessionId())) {
+            throw new NotFoundException("The session with id " + answerToQuestionPayloadDto.getSessionId() + " was not found");
         }
-        Session currentSession = sessionRepository.findById(answerToQuestionDto.getSessionId()).get();
+        Session currentSession = sessionRepository.findById(answerToQuestionPayloadDto.getSessionId()).get();
         //check if current key of the session and current key from the teacher match
-        if(answerToQuestionDto.getQuestionKey() != currentSession.getCurrentQuestionKey()){
+        if(answerToQuestionPayloadDto.getQuestionKey() != currentSession.getCurrentQuestionKey()){
             throw new InvalidKeyException("The keys don't match!");
         }
         //Find user which sent the request in the session to update his score
@@ -326,25 +355,33 @@ public class SessionService {
 
         List<SessionUser> studentsInQuiz = currentSession.getStudentsInQuiz();
         List<QuestionInSession> questionsInSession = currentSession.getQuestionsInSession();
-        QuestionInSession currentTestedQuestion = findQuestionInSessionByKey(questionsInSession, answerToQuestionDto.getQuestionKey());
+        QuestionInSession currentTestedQuestion = findQuestionInSessionByKey(questionsInSession, answerToQuestionPayloadDto.getQuestionKey());
         //remove current question from questions in session as it will be updated
         questionsInSession.remove(currentTestedQuestion);
         //remove current student from students list as it will be updated
         studentsInQuiz.remove(currentUser);
         Map<String, Integer> currentQuestionAmountOfAnswers =  currentTestedQuestion.getAmountsOfPositiveAnswersToEachAnswer();
-        if(answerToQuestionDto.isTopLeftAnswer()){
-            currentQuestionAmountOfAnswers.put(AnswerPosition.TOPLEFT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.TOPLEFT.toString()) + 1);
+        for(AnswerToQuestionDto answerToQuestionDto : answerToQuestionPayloadDto.getAnswers()){
+            if(answerToQuestionDto.isCorrect()){
+                switch (answerToQuestionDto.getPosition()){
+                    case TOPLEFT:
+                        currentQuestionAmountOfAnswers.put(AnswerPosition.TOPLEFT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.TOPLEFT.toString()) + 1);
+                        break;
+                    case TOPRIGHT:
+                        currentQuestionAmountOfAnswers.put(AnswerPosition.TOPRIGHT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.TOPRIGHT.toString()) + 1);
+                        break;
+                    case BOTTOMLEFT:
+                        currentQuestionAmountOfAnswers.put(AnswerPosition.BOTTOMLEFT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.BOTTOMLEFT.toString()) + 1);
+                        break;
+                    case BOTTOMRIGHT:
+                        currentQuestionAmountOfAnswers.put(AnswerPosition.BOTTOMRIGHT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.BOTTOMRIGHT.toString()) + 1);
+                        break;
+                    default:
+                        throw new NotFoundException("Answer position " + answerToQuestionDto.getPosition() + " not found");
+                }
+            }
         }
-        if(answerToQuestionDto.isTopRightAnswer()){
-            currentQuestionAmountOfAnswers.put(AnswerPosition.TOPRIGHT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.TOPRIGHT.toString()) + 1);
-        }
-        if(answerToQuestionDto.isBottomLeftAnswer()){
-            currentQuestionAmountOfAnswers.put(AnswerPosition.BOTTOMLEFT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.BOTTOMLEFT.toString()) + 1);
-        }
-        if(answerToQuestionDto.isBottomRightAnswer()){
-            currentQuestionAmountOfAnswers.put(AnswerPosition.BOTTOMRIGHT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.BOTTOMRIGHT.toString()) + 1);
-        }
-        if(isAnswerCorrect(answerToQuestionDto, currentTestedQuestion)){
+        if(isAnswerCorrect(answerToQuestionPayloadDto.getAnswers(), currentTestedQuestion)){
             currentTestedQuestion.setAmountOfCorrectAnswers(currentTestedQuestion.getAmountOfCorrectAnswers() + 1);
             currentUser.setAmountOfCorrectAnswers(currentUser.getAmountOfCorrectAnswers() + 1);
         }
@@ -446,12 +483,21 @@ public class SessionService {
                 "/topic/session",
                 new QuestionEndDto(StudentResponseType.QUESTIONEND)
         ));
-        return new QuestionEvaluationDto(
-            currentTestedQuestion.getAmountOfAnswersTotal(),
-            currentTestedQuestion.getAmountOfCorrectAnswers(),
-            currentTestedQuestion.getQuestionKey(),
-            currentTestedQuestion.getAmountsOfPositiveAnswersToEachAnswer(),
-            MessageType.QUESTIONEVALUATION
-        );
+        if(currentTestedQuestion.getQuestionType() == QuestionType.QUIZ) {
+            return new QuestionEvaluationDto(
+                    currentTestedQuestion.getAmountOfAnswersTotal(),
+                    currentTestedQuestion.getAmountOfCorrectAnswers(),
+                    currentTestedQuestion.getQuestionKey(),
+                    currentTestedQuestion.getAmountsOfPositiveAnswersToEachAnswer(),
+                    MessageType.QUESTIONEVALUATION
+            );
+        }else {
+            return new QuestionEvaluationDto(
+                    currentTestedQuestion.getAmountOfAnswersTotal(),
+                    currentTestedQuestion.getAmountOfCorrectAnswers(),
+                    currentTestedQuestion.getQuestionKey(),
+                    MessageType.QUESTIONEVALUATION
+            );
+        }
     }
 }
