@@ -16,11 +16,6 @@ interface AnswersEvaluationProps {
   questionEvaluation: QuestionEvaluationType | null;
 }
 
-interface QuestionAnswer {
-  value: string;
-  isCorrect: boolean;
-}
-
 const useStyles = makeStyles(() => ({
   answer: {
     borderRadius: "4px",

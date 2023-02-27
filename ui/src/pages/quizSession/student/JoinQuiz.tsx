@@ -26,7 +26,7 @@ import "./index.css";
 import JoinForm from "./joinForm/JoinForm";
 import AnswerToQuestion from "./answerToQuestion/AnswerToQuestion";
 import { mergeSort } from "../../helperMethods";
-import TrueFalseAnswers from "../teacher/questionEvaluation/answersEvaluation/trueFalseAnswersEvaluation/TrueFalseAnswersEvaluation";
+import TrueFalseAnswers from "../../quiz/questionParameters/answers/TrueFalseAnswers";
 
 //Validates input from the user when he is joining session. If needed, user is notified with Toast notifications
 const validateInputs = (name: string, sessionId): string => {
@@ -306,12 +306,12 @@ const JoinQuiz = () => {
   };
 
   //Sends the answer to the server, which handles it. Then switch the layout to waiting for teacher
-  const handleSendTruefalseAnswer = (answer: boolean) => {
+  const handleSendTruefalseAnswer = (event) => {
     const newQuestionAnswer = {
       sessionId: sessionId.current,
       questionKey: currentQuestionKey,
       questionType: NewQuestionType.TRUEFALSE,
-      answer,
+      answer: event.target.id === "true" ? true : false,
     };
     stompClient.send("/ws/submitAnswer", {}, JSON.stringify(newQuestionAnswer));
     textWhenWaiting.current = "was";
@@ -399,6 +399,7 @@ const JoinQuiz = () => {
               <TrueFalseAnswers
                 isCorrect={quiz?.questions[currentQuestionKey - 1].isCorrect!}
                 handleAnswerClick={handleSendTruefalseAnswer}
+                showIcons={false}
               />
             </Box>
           </Box>

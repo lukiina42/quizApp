@@ -54,9 +54,8 @@ const textFieldStaticProps = {
 };
 
 interface TrueFalseAnswersProps {
-  handleAnswerCorrectToggle?: () => void;
-  hideAnswer?: boolean;
-  allowCorrectSwitch?: boolean;
+  handleAnswerClick?: (e) => void;
+  showIcons: boolean;
   isCorrect?: boolean;
 }
 
@@ -66,23 +65,18 @@ const TrueFalseAnswers = (props: TrueFalseAnswersProps) => {
   //Styling classes
   const classes = useStyles();
 
-  const {
-    handleAnswerCorrectToggle,
-    hideAnswer,
-    allowCorrectSwitch,
-    isCorrect,
-  } = props;
+  const { handleAnswerClick, showIcons, isCorrect } = props;
 
   return (
     <>
       <Grid
         container
         direction={"row"}
-        spacing={hideAnswer ? 2 : 1}
+        spacing={showIcons ? 1 : 4}
         justifyContent="center"
         alignItems="center"
         //margin evens the spacing issues with grid
-        sx={{ width: "100%", margin: hideAnswer ? 0 : "0 0 0 -8px" }}
+        sx={{ width: "100%", margin: showIcons ? 0 : "0 0 0 -8px" }}
       >
         <Grid item xs={6}>
           <TextField
@@ -91,7 +85,7 @@ const TrueFalseAnswers = (props: TrueFalseAnswersProps) => {
             className={classes.answer}
             id={"true"}
             //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
-            onClick={handleAnswerCorrectToggle}
+            onClick={handleAnswerClick}
             value={"\nTrue"}
             inputProps={{ style: { textAlign: "center" } }}
             sx={{
@@ -100,7 +94,7 @@ const TrueFalseAnswers = (props: TrueFalseAnswersProps) => {
               fontSize: "1rem",
             }}
             InputProps={{
-              endAdornment: !hideAnswer ? (
+              endAdornment: showIcons ? (
                 <AdornmentCustom isCorrect={isCorrect!} />
               ) : (
                 <></>
@@ -115,7 +109,7 @@ const TrueFalseAnswers = (props: TrueFalseAnswersProps) => {
             className={classes.answer}
             id={"false"}
             //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
-            onClick={handleAnswerCorrectToggle}
+            onClick={handleAnswerClick}
             value={"\nFalse"}
             inputProps={{ style: { textAlign: "center" } }}
             sx={{
@@ -124,7 +118,7 @@ const TrueFalseAnswers = (props: TrueFalseAnswersProps) => {
               fontSize: "1rem",
             }}
             InputProps={{
-              endAdornment: !hideAnswer ? (
+              endAdornment: showIcons ? (
                 <AdornmentCustom isCorrect={!isCorrect} />
               ) : (
                 <></>

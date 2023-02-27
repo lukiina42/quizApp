@@ -205,8 +205,9 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
             />
           ) : (
             <TrueFalseAnswers
-              handleAnswerCorrectToggle={handleAnswerCorrectToggle}
+              handleAnswerClick={handleAnswerCorrectToggle}
               isCorrect={currentQuestionData.questionIsCorrect}
+              showIcons={true}
             />
           )}
         </Grid>

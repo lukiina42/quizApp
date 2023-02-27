@@ -20,7 +20,7 @@ import {
 import CustomCodeEditor from "../../../quiz/questionParameters/codeEditor/CustomCodeEditor";
 import CustomTooltip from "./CustomTooltip";
 import AnswersEvaluation from "./answersEvaluation/quizAnswersEvaluation/AnswersEvaluation";
-import TrueFalseAnswersEvaluation from "./answersEvaluation/trueFalseAnswersEvaluation/TrueFalseAnswersEvaluation";
+import TrueFalseAnswers from "../../../quiz/questionParameters/answers/TrueFalseAnswers";
 
 interface QuestionEvaluationProps {
   questionEvaluation: QuestionEvaluationType | null;
@@ -101,9 +101,9 @@ const QuestionEvaluation = ({
               questionEvaluation={questionEvaluation}
             />
           ) : (
-            <TrueFalseAnswersEvaluation
+            <TrueFalseAnswers
               isCorrect={currentQuestion?.isCorrect as boolean}
-              questionEvaluation={questionEvaluation as QuestionEvaluationType}
+              showIcons={true}
             />
           )}
         </div>

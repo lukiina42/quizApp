@@ -3,7 +3,6 @@ import { Grid, TextField } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import "react-toastify/dist/ReactToastify.css";
 import {
-  QuizQuestionAnswer,
   LanguageType,
   Question,
   NewQuestionType,
@@ -108,7 +107,7 @@ const QuestionDisplay = (props: QuestionDisplayProps) => {
               handleAnswerCorrectChange={() => {}}
             />
           ) : (
-            <TrueFalseAnswers hideAnswer={true} />
+            <TrueFalseAnswers showIcons={false} />
           )}
         </Grid>
       </Grid>
