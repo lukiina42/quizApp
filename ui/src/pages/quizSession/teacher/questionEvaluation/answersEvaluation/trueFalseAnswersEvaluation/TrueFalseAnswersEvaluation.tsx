@@ -1,30 +1,8 @@
 import React from "react";
-import { TextField, Grid, InputAdornment, Tooltip } from "@mui/material";
+import { TextField, Grid, InputAdornment } from "@mui/material";
 import { Check, Clear } from "@mui/icons-material";
 import { QuestionEvaluationType } from "../../../types";
-import { tooltipClasses } from "@mui/material";
-import { makeStyles, styled } from "@mui/styles";
-
-//Custom styling of the tooltip, which gets displayed, when user hoovers over thumbs up and down icons in the answers field
-const CustomTooltip = styled(({ className, ...props }) => (
-  <Tooltip
-    title={"Submitted / Total"}
-    placement="top"
-    arrow
-    {...props}
-    classes={{ popper: className }}
-  />
-))({
-  [`& .${tooltipClasses.tooltip}`]: {
-    maxWidth: 160,
-    padding: 10,
-    textAlign: "center",
-    backgroundColor: "#373737",
-  },
-  [`& .${tooltipClasses.arrow}`]: {
-    color: "#373737",
-  },
-});
+import { makeStyles } from "@mui/styles";
 
 //Custom styling of the answer text fields
 const useStyles = makeStyles(() => ({
@@ -89,7 +67,7 @@ const TrueFalseAnswersEvaluation = (props: TrueFalseAnswersProps) => {
   //Styling classes
   const classes = useStyles();
 
-  const { questionEvaluation, isCorrect, handleAnswerClick } = props;
+  const { isCorrect, handleAnswerClick } = props;
 
   const isEvaluation = handleAnswerClick ? false : true;
 
@@ -131,17 +109,6 @@ const TrueFalseAnswersEvaluation = (props: TrueFalseAnswersProps) => {
                 : {}
             }
           />
-          {isEvaluation && (
-            <CustomTooltip>
-              <div className={"answerScore"}>
-                {isCorrect
-                  ? questionEvaluation?.amountOfCorrectAnswers
-                  : questionEvaluation!.amountOfAnswersTotal -
-                    questionEvaluation!.amountOfCorrectAnswers}
-                /{questionEvaluation?.amountOfAnswersTotal}
-              </div>
-            </CustomTooltip>
-          )}
         </Grid>
         <Grid item xs={6}>
           <TextField
@@ -166,17 +133,6 @@ const TrueFalseAnswersEvaluation = (props: TrueFalseAnswersProps) => {
                 : {}
             }
           />
-          {isEvaluation && (
-            <CustomTooltip>
-              <div className={"answerScore"}>
-                {isCorrect
-                  ? questionEvaluation!.amountOfAnswersTotal -
-                    questionEvaluation!.amountOfCorrectAnswers
-                  : questionEvaluation?.amountOfCorrectAnswers}
-                /{questionEvaluation?.amountOfAnswersTotal}
-              </div>
-            </CustomTooltip>
-          )}
         </Grid>
       </Grid>
     </>

@@ -360,33 +360,43 @@ public class SessionService {
         questionsInSession.remove(currentTestedQuestion);
         //remove current student from students list as it will be updated
         studentsInQuiz.remove(currentUser);
-        Map<String, Integer> currentQuestionAmountOfAnswers =  currentTestedQuestion.getAmountsOfPositiveAnswersToEachAnswer();
-        for(AnswerToQuestionDto answerToQuestionDto : answerToQuestionPayloadDto.getAnswers()){
-            if(answerToQuestionDto.isCorrect()){
-                switch (answerToQuestionDto.getPosition()){
-                    case TOPLEFT:
-                        currentQuestionAmountOfAnswers.put(AnswerPosition.TOPLEFT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.TOPLEFT.toString()) + 1);
-                        break;
-                    case TOPRIGHT:
-                        currentQuestionAmountOfAnswers.put(AnswerPosition.TOPRIGHT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.TOPRIGHT.toString()) + 1);
-                        break;
-                    case BOTTOMLEFT:
-                        currentQuestionAmountOfAnswers.put(AnswerPosition.BOTTOMLEFT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.BOTTOMLEFT.toString()) + 1);
-                        break;
-                    case BOTTOMRIGHT:
-                        currentQuestionAmountOfAnswers.put(AnswerPosition.BOTTOMRIGHT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.BOTTOMRIGHT.toString()) + 1);
-                        break;
-                    default:
-                        throw new NotFoundException("Answer position " + answerToQuestionDto.getPosition() + " not found");
+
+        if(answerToQuestionPayloadDto.getQuestionType() == QuestionType.QUIZ) {
+            Map<String, Integer> currentQuestionAmountOfAnswers = currentTestedQuestion.getAmountsOfPositiveAnswersToEachAnswer();
+            for (AnswerToQuestionDto answerToQuestionDto : answerToQuestionPayloadDto.getAnswers()) {
+                if (answerToQuestionDto.isCorrect()) {
+                    switch (answerToQuestionDto.getPosition()) {
+                        case TOPLEFT:
+                            currentQuestionAmountOfAnswers.put(AnswerPosition.TOPLEFT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.TOPLEFT.toString()) + 1);
+                            break;
+                        case TOPRIGHT:
+                            currentQuestionAmountOfAnswers.put(AnswerPosition.TOPRIGHT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.TOPRIGHT.toString()) + 1);
+                            break;
+                        case BOTTOMLEFT:
+                            currentQuestionAmountOfAnswers.put(AnswerPosition.BOTTOMLEFT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.BOTTOMLEFT.toString()) + 1);
+                            break;
+                        case BOTTOMRIGHT:
+                            currentQuestionAmountOfAnswers.put(AnswerPosition.BOTTOMRIGHT.toString(), currentQuestionAmountOfAnswers.get(AnswerPosition.BOTTOMRIGHT.toString()) + 1);
+                            break;
+                        default:
+                            throw new NotFoundException("Answer position " + answerToQuestionDto.getPosition() + " not found");
+                    }
                 }
             }
+            if (isAnswerCorrect(answerToQuestionPayloadDto.getAnswers(), currentTestedQuestion)) {
+                currentTestedQuestion.setAmountOfCorrectAnswers(currentTestedQuestion.getAmountOfCorrectAnswers() + 1);
+                currentUser.setAmountOfCorrectAnswers(currentUser.getAmountOfCorrectAnswers() + 1);
+            }
+        } else if(answerToQuestionPayloadDto.getQuestionType() == QuestionType.TRUEFALSE){
+            if(answerToQuestionPayloadDto.isAnswer() == currentTestedQuestion.isCorrect()){
+                currentTestedQuestion.setAmountOfCorrectAnswers(currentTestedQuestion.getAmountOfCorrectAnswers() + 1);
+                currentUser.setAmountOfCorrectAnswers(currentUser.getAmountOfCorrectAnswers() + 1);
+            }
         }
-        if(isAnswerCorrect(answerToQuestionPayloadDto.getAnswers(), currentTestedQuestion)){
-            currentTestedQuestion.setAmountOfCorrectAnswers(currentTestedQuestion.getAmountOfCorrectAnswers() + 1);
-            currentUser.setAmountOfCorrectAnswers(currentUser.getAmountOfCorrectAnswers() + 1);
-        }
+
         currentTestedQuestion.setAmountOfAnswersTotal(currentTestedQuestion.getAmountOfAnswersTotal() + 1);
         currentUser.setAmountOfAnsweredQuestions(currentUser.getAmountOfAnsweredQuestions() + 1);
+
         //add updated question back to the questions in session
         questionsInSession.add(currentTestedQuestion);
         //add updated student to the students list

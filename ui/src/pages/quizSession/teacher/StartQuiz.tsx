@@ -10,7 +10,7 @@ import ListItemText from "@mui/material/ListItemText";
 import PersonIcon from "@mui/icons-material/Person";
 import { Prompt } from "react-router";
 import { useHistory } from "react-router-dom";
-import { Quiz, Question, QuizQuestionAnswer } from "../../../common/types";
+import { Quiz, Question } from "../../../common/types";
 import QuestionDisplay from "./questionDisplay/QuestionDisplay";
 import QuestionEvaluation from "./questionEvaluation/QuestionEvaluation";
 import StudentResults from "./studentResults/StudentResults";

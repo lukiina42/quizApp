@@ -23,6 +23,7 @@ public class QuestionInSession extends AbstractEntity {
 
     private int questionKey;
 
+    //is present if the question is true/false
     private boolean isCorrect;
 
     private QuestionType questionType;
