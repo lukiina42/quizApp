@@ -3,7 +3,10 @@ import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import { TextField, Grid, Tooltip, InputAdornment } from "@mui/material";
 import { tooltipClasses } from "@mui/material";
 import { styled, makeStyles } from "@mui/styles";
-import { QuizAnswers } from "../../../../common/types";
+import {
+  QuizQuestionAnswer,
+  QuizQuestionPosition,
+} from "../../../../common/types";
 
 //Custom styling of the tooltip, which gets displayed, when user hoovers over thumbs up and down icons in the answers field
 const CustomTooltip = styled(({ className, ...props }) => (
@@ -42,17 +45,32 @@ const textFieldStaticProps = {
   variant: "outlined" as any,
 };
 
+export const getBackgroundColor = (position: string) => {
+  switch (position) {
+    case QuizQuestionPosition.TOPLEFT:
+      return "#66A4FF";
+    case QuizQuestionPosition.TOPRIGHT:
+      return "#B456EB";
+    case QuizQuestionPosition.BOTTOMLEFT:
+      return "#EB9B56";
+    case QuizQuestionPosition.BOTTOMRIGHT:
+      return "#FFFF99";
+    default:
+      throw new Error("Answer position unknown");
+  }
+};
+
 interface AnswersProps {
   handleAnswerValueChange?: (event: any) => void;
   handleAnswerCorrectChange: (key: string) => void;
   disabled?: boolean;
-  quizAnswers?: QuizAnswers;
+  quizAnswers?: QuizQuestionAnswer[];
   allowCorrectSwitch?: boolean;
 }
 
 //Displays the answers in current question. The teacher can write into them when he is editting the question, but they are disabled
 // and only displayed when teacher is presenting the quiz to students
-const Answers = (props: AnswersProps) => {
+const QuizAnswers = (props: AnswersProps) => {
   //Styling classes
   const classes = useStyles();
 
@@ -77,14 +95,14 @@ const Answers = (props: AnswersProps) => {
   //Custom adornment of the tooltip, it is used 4 times for the answers, that's why it is extracted into the variable
   //It displays the thumbs up or down icons, which can be toggled when teacher is editting the question, and also it displays
   //the tooltip of the thumbs, which explains what they mean, when teacher hoovers over them
-  const AdornmentCustom = (props) => {
-    const { id } = props;
+  const AdornmentCustom = (props: { answer: QuizQuestionAnswer }) => {
+    const { answer } = props;
     return (
       <InputAdornment position="end">
         <CustomTooltip
           title={
             //@ts-ignore
-            quizAnswers[id].isCorrect
+            answer.isCorrect
               ? "Thumbs up: correct answer Click to toggle"
               : "Thumbs down: incorrect answer Click to toggle"
           }
@@ -92,11 +110,13 @@ const Answers = (props: AnswersProps) => {
           arrow
         >
           {/* @ts-ignore */}
-          {quizAnswers[id].isCorrect ? (
+          {answer.isCorrect ? (
             <ThumbUpIcon
               color="secondary"
               onClick={
-                disabled ? () => {} : () => handleAnswerCorrectChange(id)
+                disabled
+                  ? () => {}
+                  : () => handleAnswerCorrectChange(answer.position)
               }
               onMouseEnter={(event) =>
                 (event.currentTarget.style.cursor = "pointer")
@@ -109,7 +129,9 @@ const Answers = (props: AnswersProps) => {
             <ThumbDownIcon
               color="error"
               onClick={
-                disabled ? () => {} : () => handleAnswerCorrectChange(id)
+                disabled
+                  ? () => {}
+                  : () => handleAnswerCorrectChange(answer.position)
               }
               onMouseEnter={(event) =>
                 (event.currentTarget.style.cursor = "pointer")
@@ -135,111 +157,37 @@ const Answers = (props: AnswersProps) => {
         //margin evens the spacing issues with grid
         sx={{ width: "100%", margin: disabled ? 0 : "0 0 0 -8px" }}
       >
-        <Grid item xs={6}>
-          <TextField
-            {...textFieldChangingInputProps}
-            {...textFieldStaticProps}
-            className={classes.answer}
-            id={"topLeftAnswer"}
-            //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
-            onClick={
-              disabled && allowCorrectSwitch
-                ? () => handleAnswerCorrectChange("topLeftAnswer")
-                : () => {}
-            }
-            value={quizAnswers?.topLeftAnswer.value}
-            inputProps={{ style: { textAlign: "center" } }}
-            sx={{ backgroundColor: "#66A4FF" }}
-            InputProps={
-              disabled && !allowCorrectSwitch
-                ? {}
-                : {
-                    endAdornment: <AdornmentCustom id="topLeftAnswer" />,
-                  }
-            }
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            {...textFieldChangingInputProps}
-            {...textFieldStaticProps}
-            id={"topRightAnswer"}
-            className={classes.answer}
-            //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
-            onClick={
-              disabled && allowCorrectSwitch
-                ? () => handleAnswerCorrectChange("topRightAnswer")
-                : () => {}
-            }
-            value={quizAnswers?.topRightAnswer.value}
-            inputProps={{ style: { textAlign: "center" } }}
-            sx={{ backgroundColor: "#B456EB" }}
-            InputProps={
-              disabled && !allowCorrectSwitch
-                ? {}
-                : {
-                    endAdornment: <AdornmentCustom id="topRightAnswer" />,
-                  }
-            }
-          />
-        </Grid>
-        {true && (
-          <>
-            <Grid item xs={6}>
+        {quizAnswers?.map((answer) => {
+          return (
+            <Grid item xs={6} key={answer.position}>
               <TextField
                 {...textFieldChangingInputProps}
                 {...textFieldStaticProps}
-                id={"bottomLeftAnswer"}
                 className={classes.answer}
+                id={answer.position}
                 //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
                 onClick={
                   disabled && allowCorrectSwitch
-                    ? () => handleAnswerCorrectChange("bottomLeftAnswer")
+                    ? () => handleAnswerCorrectChange(answer.position)
                     : () => {}
                 }
-                value={quizAnswers?.bottomLeftAnswer.value}
+                value={answer.value}
                 inputProps={{ style: { textAlign: "center" } }}
-                sx={{ backgroundColor: "#EB9B56" }}
+                sx={{ backgroundColor: getBackgroundColor(answer.position) }}
                 InputProps={
                   disabled && !allowCorrectSwitch
                     ? {}
                     : {
-                        endAdornment: <AdornmentCustom id="bottomLeftAnswer" />,
+                        endAdornment: <AdornmentCustom answer={answer} />,
                       }
                 }
               />
             </Grid>
-            <Grid item xs={6}>
-              <TextField
-                {...textFieldChangingInputProps}
-                {...textFieldStaticProps}
-                id={"bottomRightAnswer"}
-                className={classes.answer}
-                //if the user is answering to the question in the session, he should be able to toggle answerCorrect when he clicks on the whole text field
-                onClick={
-                  disabled && allowCorrectSwitch
-                    ? () => handleAnswerCorrectChange("bottomRightAnswer")
-                    : () => {}
-                }
-                value={quizAnswers?.bottomRightAnswer.value}
-                inputProps={{ style: { textAlign: "center" } }}
-                sx={{ backgroundColor: "#FFFF99" }}
-                InputProps={
-                  disabled && !allowCorrectSwitch
-                    ? {}
-                    : {
-                        endAdornment: (
-                          <AdornmentCustom id="bottomRightAnswer" />
-                        ),
-                      }
-                }
-              />
-            </Grid>
-          </>
-        )}
+          );
+        })}
       </Grid>
     </>
   );
 };
 
-export default Answers;
+export default QuizAnswers;

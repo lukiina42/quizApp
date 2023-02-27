@@ -12,4 +12,5 @@ export interface QuestionData {
   questionText: string;
   questionLanguage: LanguageType;
   questionType: string;
+  questionIsCorrect: boolean;
 }

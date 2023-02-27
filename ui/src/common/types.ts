@@ -1,9 +1,11 @@
 //this components defines common types, which are used across the application - while creating quiz, testing a quiz etc.
 
-//one of the answers to the question
-interface Answer {
+export interface QuizQuestionAnswer {
   value: string;
   isCorrect: boolean;
+  //position serves also as an id
+  position: string;
+  key: number;
 }
 
 //The question in the quiz
@@ -15,10 +17,8 @@ export interface Question {
     value: string;
     language: LanguageType;
   };
-  topLeftAnswer: Answer;
-  topRightAnswer: Answer;
-  bottomLeftAnswer: Answer;
-  bottomRightAnswer: Answer;
+  answers: QuizQuestionAnswer[];
+  isCorrect?: boolean;
 }
 
 //The quiz, contains array of questions and name with id
@@ -43,25 +43,24 @@ export enum LanguageType {
   PLAINTEXT = "PLAINTEXT",
 }
 
-const initialQuizAnswer: Answer = {
+const initialQuizAnswer = {
   value: "",
   isCorrect: false,
 };
 
-//Defines text values of the answers
-export interface QuizAnswers {
-  topLeftAnswer: Answer;
-  topRightAnswer: Answer;
-  bottomLeftAnswer: Answer;
-  bottomRightAnswer: Answer;
-}
-
-export const initialQuizAnswers = {
-  topLeftAnswer: initialQuizAnswer,
-  topRightAnswer: initialQuizAnswer,
-  bottomLeftAnswer: initialQuizAnswer,
-  bottomRightAnswer: initialQuizAnswer,
+export const QuizQuestionPosition = {
+  TOPLEFT: "topLeftAnswer",
+  TOPRIGHT: "topRightAnswer",
+  BOTTOMLEFT: "bottomLeftAnswer",
+  BOTTOMRIGHT: "bottomRightAnswer",
 };
+
+export const initialQuizAnswers: QuizQuestionAnswer[] = [
+  { ...initialQuizAnswer, position: QuizQuestionPosition.TOPLEFT, key: 0 },
+  { ...initialQuizAnswer, position: QuizQuestionPosition.TOPRIGHT, key: 1 },
+  { ...initialQuizAnswer, position: QuizQuestionPosition.BOTTOMLEFT, key: 2 },
+  { ...initialQuizAnswer, position: QuizQuestionPosition.BOTTOMRIGHT, key: 3 },
+];
 
 //Defines user, who is currently logged in
 export interface UserInterface {

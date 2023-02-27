@@ -6,9 +6,14 @@ import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
-import Answers from "./answers/Answers";
+import QuizAnswers from "./answers/QuizAnswers";
+import TrueFalseAnswers from "./answers/TrueFalseAnswers";
 import "react-toastify/dist/ReactToastify.css";
-import { LanguageType, QuizAnswers } from "../../../common/types";
+import {
+  QuizQuestionAnswer,
+  LanguageType,
+  NewQuestionType,
+} from "../../../common/types";
 import { QuestionData } from "../types";
 
 const useStyles = makeStyles((theme) => ({
@@ -29,14 +34,14 @@ const useStyles = makeStyles((theme) => ({
 
 interface QuestionCreatorProps {
   currentQuestionData: QuestionData;
-  quizAnswers: QuizAnswers;
+  answers: QuizQuestionAnswer[];
   createNewQuizQuestion?: (key: number) => any; //TODO Question here
   handleAnswerValueChange?: (event) => void;
   handleAnswerCorrectChange: (key: string) => void;
+  handleAnswerCorrectToggle: () => void;
   handleQuestionTextChange: (event) => void;
   handleQuestionTextChangeWithValue: (event) => void;
   handleLanguageChange: (event) => void;
-  handleLanguageChangeWithValue: (language: LanguageType) => void;
   handleQuestionNameChange: (event) => void;
   handleSaveQuizButton: (event) => void;
   handleExitButton: () => void;
@@ -46,7 +51,7 @@ interface QuestionCreatorProps {
 const QuestionCreator = (props: QuestionCreatorProps) => {
   const {
     currentQuestionData,
-    quizAnswers,
+    answers,
     handleAnswerValueChange,
     handleAnswerCorrectChange,
     handleQuestionTextChange,
@@ -55,6 +60,7 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
     handleLanguageChange,
     handleSaveQuizButton,
     handleExitButton,
+    handleAnswerCorrectToggle,
   } = props;
 
   //Styling classes
@@ -191,11 +197,19 @@ const QuestionCreator = (props: QuestionCreatorProps) => {
           width={"80%"}
           sx={{ minHeight: "225px", display: "flex", alignItems: "center" }}
         >
-          <Answers
-            quizAnswers={quizAnswers}
-            handleAnswerValueChange={handleAnswerValueChange}
-            handleAnswerCorrectChange={handleAnswerCorrectChange}
-          />
+          {currentQuestionData.questionType === NewQuestionType.QUIZ ? (
+            <QuizAnswers
+              quizAnswers={answers as QuizQuestionAnswer[]}
+              handleAnswerValueChange={handleAnswerValueChange}
+              handleAnswerCorrectChange={handleAnswerCorrectChange}
+            />
+          ) : (
+            <TrueFalseAnswers
+              handleAnswerClick={handleAnswerCorrectToggle}
+              isCorrect={currentQuestionData.questionIsCorrect}
+              showIcons={true}
+            />
+          )}
         </Grid>
         <Grid item sx={{ width: "100%", height: "10%" }}>
           <Grid

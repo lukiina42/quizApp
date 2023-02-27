@@ -18,6 +18,8 @@ public class Question extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     private QuestionType questionType;
     private String name;
+
+    private boolean isCorrect;
     @OneToOne(mappedBy = "question", cascade = CascadeType.ALL)
     private QuestionText questionText;
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)

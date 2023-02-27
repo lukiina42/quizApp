@@ -1,6 +1,7 @@
 package cz.cvut.fel.sem.mapper;
 
 import cz.cvut.fel.sem.dto.question.AnswerDto;
+import cz.cvut.fel.sem.exception.NotFoundException;
 import cz.cvut.fel.sem.model.quizQuestion.Answer;
 import cz.cvut.fel.sem.model.quizQuestion.AnswerPosition;
 import cz.cvut.fel.sem.model.quizQuestion.Question;
@@ -13,12 +14,43 @@ import java.util.List;
  */
 @Component
 public class AnswerMapper {
-    public Answer mapToModel(AnswerDto answerDto, AnswerPosition answerPosition, Question question){
-        return new Answer(answerDto.getValue(), answerDto.isCorrect(), answerPosition, question);
+
+    private AnswerPosition getAnswerPosition(AnswerDto answerDto){
+        switch(answerDto.getPosition()){
+            case "topRightAnswer":
+                return AnswerPosition.TOPRIGHT;
+            case "topLeftAnswer":
+                return AnswerPosition.TOPLEFT;
+            case "bottomRightAnswer":
+                return AnswerPosition.BOTTOMRIGHT;
+            case "bottomLeftAnswer":
+                return AnswerPosition.BOTTOMLEFT;
+            default:
+                throw new NotFoundException("Answer position " + answerDto.getPosition() + " not found.");
+        }
+    }
+
+    public Answer mapToModel(AnswerDto answerDto, Question question){
+        return new Answer(answerDto.getValue(),answerDto.getKey(), answerDto.isCorrect(), getAnswerPosition(answerDto), question);
+    }
+
+    private String getStringPosition(Answer answer){
+        switch(answer.getAnswerPosition()){
+            case TOPRIGHT:
+                return "topRightAnswer";
+            case TOPLEFT:
+                return "topLeftAnswer";
+            case BOTTOMRIGHT:
+                return "bottomRightAnswer";
+            case BOTTOMLEFT:
+                return "bottomLeftAnswer";
+            default:
+                throw new NotFoundException("Answer position " + answer.getAnswerPosition() + " not found.");
+        }
     }
 
     public AnswerDto mapToDto(Answer answer){
-        return new AnswerDto(answer.getValue(), answer.isCorrect());
+        return new AnswerDto(getStringPosition(answer), answer.getValue(), answer.isCorrect(), answer.getKey());
     }
 
     /**
@@ -34,7 +66,7 @@ public class AnswerMapper {
                 answerToMap = answer;
             }
         }
-        answerToMap = answerToMap == null ? new Answer("", false, answerPosition, null) : answerToMap;
+        answerToMap = answerToMap == null ? new Answer("", 0, false, answerPosition, null) : answerToMap;
         return mapToDto(answerToMap);
     }
 }

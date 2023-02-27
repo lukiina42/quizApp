@@ -1,4 +1,8 @@
-import { Quiz } from "../../../../common/types";
+import {
+  QuizQuestionAnswer,
+  Quiz,
+  NewQuestionType,
+} from "../../../../common/types";
 
 export interface ResponseMessage {
   responseType: string;
@@ -21,10 +25,8 @@ export interface ResultMessage extends ResponseMessage {
 export interface QuestionAnswer {
   sessionId: number;
   questionKey: number;
-  topLeftAnswer: boolean;
-  topRightAnswer: boolean;
-  bottomLeftAnswer: boolean;
-  bottomRightAnswer: boolean;
+  questionType: NewQuestionType;
+  answers: QuizQuestionAnswer[];
 }
 
 //Response status to join session request

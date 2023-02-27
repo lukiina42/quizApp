@@ -1,24 +1,31 @@
-import React, { useRef, useState } from "react";
+import React, { useReducer, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { Grid } from "@mui/material";
 import SidePanel from "./sidePanel/SidePanel";
 import QuestionCreator from "./questionParameters/QuestionCreate";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { LanguageType, QuizAnswers, UserInterface } from "../../common/types";
+import {
+  NewQuestionType,
+  Question,
+  QuizQuestionAnswer,
+  UserInterface,
+} from "../../common/types";
 import { Quiz } from "../../common/types";
 import {
   countBreakLines,
-  createNewQuizQuestion,
+  createNewQuestion,
   createQuestionFromStates,
   toastSettings,
   validateQuestionInput,
 } from "./helperMethods/index";
 import { useUser } from "../../context/UserContext";
-import { QuestionData } from "./types/index";
 import { saveQuiz } from "../../api/quizApi";
 import { useMutation } from "react-query";
 import { useSelector } from "react-redux";
+import questionDataReducer, {
+  actionTypes,
+} from "./questionDataReducer/questionDataReducer";
 
 //The parent component in which the user creates or edits the quiz. It has 2 child components: side panel
 // where user can switch between the questions and questionCreator when user can set the parameters of the question
@@ -37,22 +44,24 @@ const CreateQuiz = (props) => {
 
   const [currentQuiz, setCurrentQuiz] = useState<Quiz>(quiz);
 
-  const [currentQuestionData, setCurrentQuestionData] = useState<QuestionData>({
-    questionKey: currentQuizRef.current.questions[0].key,
-    questionName: currentQuizRef.current.questions[0].name,
-    questionText: currentQuizRef.current.questions[0].question.value,
-    questionLanguage: currentQuizRef.current.questions[0].question.language,
-    questionType: currentQuizRef.current.questions[0].questionType,
-  });
+  const [currentQuestionData, dispatchQuestionData] = useReducer(
+    questionDataReducer,
+    {
+      questionKey: quiz.questions[0].key,
+      questionName: quiz.questions[0].name,
+      questionText: quiz.questions[0].question.value,
+      questionLanguage: quiz.questions[0].question.language,
+      questionType: quiz.questions[0].questionType,
+      questionIsCorrect: quiz.questions[0].isCorrect
+        ? quiz.questions[0].isCorrect
+        : false,
+    }
+  );
 
   //Contains info about which answer values.
-  //TODO add interface from types here
-  const [quizAnswers, setQuizAnswers] = useState<QuizAnswers>({
-    topLeftAnswer: currentQuizRef.current.questions[0].topLeftAnswer,
-    topRightAnswer: currentQuizRef.current.questions[0].topRightAnswer,
-    bottomLeftAnswer: currentQuizRef.current.questions[0].bottomLeftAnswer,
-    bottomRightAnswer: currentQuizRef.current.questions[0].bottomRightAnswer,
-  });
+  const [answers, setAnswers] = useState<QuizQuestionAnswer[]>(
+    quiz.questions[0].answers
+  );
 
   const saveQuizMutation = useMutation(saveQuiz, {
     onSuccess: () => {
@@ -60,75 +69,85 @@ const CreateQuiz = (props) => {
     },
   });
 
-  const handleLanguageChange = (event) =>
-    setCurrentQuestionData((prevQuestionData) => {
-      return { ...prevQuestionData, questionLanguage: event.target.value };
-    });
-
-  const handleLanguageChangeWithValue = (value: LanguageType) =>
-    setCurrentQuestionData((prevQuestionData) => {
-      return { ...prevQuestionData, questionLanguage: value };
-    });
-
-  //Handles question text change
-  const handleQuestionTextChange = (event): void =>
-    setCurrentQuestionData((prevQuestionData) => {
-      return { ...prevQuestionData, questionText: event.target.value };
-    });
-
-  //Handles question text change with value
-  const handleQuestionTextChangeWithValue = (value: string) =>
-    setCurrentQuestionData((prevQuestionData) => {
-      return { ...prevQuestionData, questionText: value };
-    });
-
-  //Handles plain text question change
-  const handleQuestionNameChange = (event) =>
-    setCurrentQuestionData((prevQuestionData) => {
-      return { ...prevQuestionData, questionName: event.target.value };
-    });
-
-  const handleAnswerCorrectChange = (key: string) => {
-    setQuizAnswers((prevQuizAnswers) => {
-      return {
-        ...prevQuizAnswers,
-        [key]: {
-          ...[key],
-          value: prevQuizAnswers[key].value,
-          isCorrect: !prevQuizAnswers[key].isCorrect,
-        },
-      };
+  const handleLanguageChange = (event) => {
+    dispatchQuestionData({
+      type: actionTypes.LANGUAGECHANGE,
+      language: event.target.value,
     });
   };
 
+  //Handles question text change
+  const handleQuestionTextChange = (event): void => {
+    dispatchQuestionData({
+      type: actionTypes.QUESTIONTEXTCHANGE,
+      text: event.target.value,
+    });
+  };
+
+  //Handles question text change with value
+  const handleQuestionTextChangeWithValue = (value: string) => {
+    dispatchQuestionData({
+      type: actionTypes.QUESTIONTEXTCHANGE,
+      text: value,
+    });
+  };
+
+  //Handles plain text question change
+  const handleQuestionNameChange = (event) => {
+    dispatchQuestionData({
+      type: actionTypes.QUESTIONNAMECHANGE,
+      questionName: event.target.value,
+    });
+  };
+
+  const handleQuizAnswerCorrectChange = (key: string) => {
+    setAnswers(
+      answers.map((answer) => {
+        if (answer.position === key) {
+          return {
+            ...answer,
+            isCorrect: !answer.isCorrect,
+          };
+        }
+        return answer;
+      })
+    );
+  };
+
+  const handleTrueFalseAnswerCorrectToggle = () => {
+    dispatchQuestionData({ type: actionTypes.ISCORRECTTOGGLE });
+  };
+
   //Handles change in one of the answers, handles the input
-  const handleAnswerValueChange = (event): void => {
+  const handleQuizAnswerValueChange = (event): void => {
     if (
       event.target.value.length > 150 ||
       countBreakLines(event.target.value) > 2
     ) {
       return;
     }
-    setQuizAnswers((currAnswers) => {
-      return {
-        ...currAnswers,
-        [event.target.id]: {
-          ...currAnswers[event.target.id],
-          value: event.target.value,
-        },
-      };
-    });
+    setAnswers(
+      (answers as QuizQuestionAnswer[]).map((answer) => {
+        if (answer.position === event.target.id) {
+          return {
+            ...answer,
+            value: event.target.value,
+          };
+        }
+        return answer;
+      })
+    );
   };
 
   //Saves the question with the current values -> states or values of text fields are used
   const saveTheQuestion = (finalSave: boolean): void => {
     const updatedQuestion = createQuestionFromStates(
       currentQuestionData,
-      quizAnswers
+      answers
     );
     const updatedQuestionsFromQuiz = [...currentQuiz.questions];
     updatedQuestionsFromQuiz[currentQuestionData.questionKey - 1] =
-      updatedQuestion;
+      updatedQuestion as Question;
 
     if (!finalSave) {
       //update questions in quiz without mutating the state
@@ -151,7 +170,7 @@ const CreateQuiz = (props) => {
       //don't do anything if current question is clicked
       return;
     }
-    const status = validateQuestionInput(currentQuestionData, quizAnswers);
+    const status = validateQuestionInput(currentQuestionData, answers);
     if (status !== "OK") {
       toast.warn(status, {
         ...toastSettings,
@@ -163,66 +182,70 @@ const CreateQuiz = (props) => {
 
     const newQuestion = currentQuiz.questions[key];
 
-    setCurrentQuestionData((prevCurrentQuestionData) => {
-      return {
-        ...prevCurrentQuestionData,
-        questionKey: newQuestion.key,
-        questionName: newQuestion.name,
-        questionText: newQuestion.question.value,
-        questionLanguage: newQuestion.question.language,
-        questionType: newQuestion.questionType,
-      };
+    dispatchQuestionData({
+      type: actionTypes.LOADNEXTQUESTION,
+      nextQuestion: newQuestion,
     });
-    setQuizAnswers((prevQuizAnswers) => {
-      return {
-        ...prevQuizAnswers,
-        topLeftAnswer: newQuestion.topLeftAnswer,
-        bottomLeftAnswer: newQuestion.bottomLeftAnswer,
-        topRightAnswer: newQuestion.topRightAnswer,
-        bottomRightAnswer: newQuestion.bottomRightAnswer,
-      };
-    });
+
+    switch (newQuestion.questionType) {
+      case NewQuestionType.QUIZ:
+        setAnswers(newQuestion.answers);
+        break;
+      case NewQuestionType.TRUEFALSE:
+        setAnswers([]);
+        break;
+      default:
+        setAnswers([]);
+        break;
+    }
   };
 
   //defines what should happen if user creates new question => create new empty question and
   //save the current one in QuestionCreator.js using the questionParams state
-  const handleNewQuestionClick = (event): void => {
-    const status = validateQuestionInput(currentQuestionData, quizAnswers);
-    if (status !== "OK") {
-      toast.warn(status, {
-        ...toastSettings,
+  const handleNewQuestionClick = (questionType: NewQuestionType): void => {
+    if (currentQuestionData.questionType === NewQuestionType.QUIZ) {
+      const status = validateQuestionInput(currentQuestionData, answers);
+      if (status !== "OK") {
+        toast.warn(status, {
+          ...toastSettings,
+        });
+        return;
+      }
+      saveTheQuestion(false);
+
+      const newQuestion = createNewQuestion(
+        currentQuiz.questions.length + 1,
+        questionType
+      );
+      setCurrentQuiz((prevQuiz) => {
+        return {
+          ...prevQuiz,
+          questions: [...prevQuiz.questions, newQuestion],
+        };
       });
-      return;
+
+      dispatchQuestionData({
+        type: actionTypes.LOADNEXTQUESTION,
+        nextQuestion: newQuestion,
+      });
+      setAnswers(newQuestion.answers);
+    } else if (currentQuestionData.questionType === NewQuestionType.TRUEFALSE) {
+      saveTheQuestion(false);
+
+      const newQuestion = createNewQuestion(
+        currentQuiz.questions.length + 1,
+        questionType
+      );
+      setCurrentQuiz((prevQuiz) => {
+        return {
+          ...prevQuiz,
+          questions: [...prevQuiz.questions, newQuestion],
+        };
+      });
+
+      dispatchQuestionData({ type: actionTypes.LOADNEWQUESTION, newQuestion });
+      setAnswers(newQuestion.answers);
     }
-    saveTheQuestion(false);
-
-    const newQuestion = createNewQuizQuestion(currentQuiz.questions.length + 1);
-    setCurrentQuiz((prevQuiz) => {
-      return {
-        ...prevQuiz,
-        questions: [...prevQuiz.questions, newQuestion],
-      };
-    });
-
-    setCurrentQuestionData((prevCurrentQuestionData) => {
-      return {
-        ...prevCurrentQuestionData,
-        questionKey: newQuestion.key,
-        questionName: newQuestion.name,
-        questionText: newQuestion.question.value,
-        questionLanguage: newQuestion.question.language,
-        questionType: newQuestion.questionType,
-      };
-    });
-    setQuizAnswers((prevQuizAnswers) => {
-      return {
-        ...prevQuizAnswers,
-        topLeftAnswer: newQuestion.topLeftAnswer,
-        bottomLeftAnswer: newQuestion.bottomLeftAnswer,
-        topRightAnswer: newQuestion.topRightAnswer,
-        bottomRightAnswer: newQuestion.bottomRightAnswer,
-      };
-    });
   };
 
   //Gets triggered when user clicks on the trash icon in the question, the question then gets deleted
@@ -243,7 +266,7 @@ const CreateQuiz = (props) => {
       //Edit the keys of remaining questions
       //If there are questions 1, 2 and 3 and user deletes 2,
       //we don't want question 1 and question 3 remain on the page
-      let question = updatedQuestions[i];
+      let question = { ...updatedQuestions[i] };
       question.key = i + 1;
       updatedQuestions[i] = question;
     }
@@ -261,39 +284,20 @@ const CreateQuiz = (props) => {
         key <= updatedQuestions.length
           ? updatedQuestions[key - 1]
           : updatedQuestions[key - 2];
-      setCurrentQuestionData((prevCurrentQuestionData) => {
-        return {
-          ...prevCurrentQuestionData,
-          questionKey: nextQuestion.key,
-          questionName: nextQuestion.name,
-          questionText: nextQuestion.question.value,
-          questionLanguage: nextQuestion.question.language,
-          questionType: nextQuestion.questionType,
-        };
+      dispatchQuestionData({
+        type: actionTypes.LOADNEXTQUESTION,
+        nextQuestion,
       });
-      setQuizAnswers((prevQuizAnswers) => {
-        return {
-          ...prevQuizAnswers,
-          topLeftAnswer: nextQuestion.topLeftAnswer,
-          bottomLeftAnswer: nextQuestion.bottomLeftAnswer,
-          topRightAnswer: nextQuestion.topRightAnswer,
-          bottomRightAnswer: nextQuestion.bottomRightAnswer,
-        };
-      });
+      setAnswers(nextQuestion.answers);
     } else if (currentQuestionData.questionKey > key) {
-      setCurrentQuestionData((prevData) => {
-        return {
-          ...prevData,
-          questionKey: prevData.questionKey - 1,
-        };
-      });
+      dispatchQuestionData({ type: actionTypes.DECREASEQUESTIONKEY });
     }
   };
 
   //Saves the whole quiz
   const handleSaveQuizButton = (event): void => {
     event.preventDefault();
-    const status = validateQuestionInput(currentQuestionData, quizAnswers);
+    const status = validateQuestionInput(currentQuestionData, answers);
     if (status !== "OK") {
       toast.warn(status, {
         position: "top-right",
@@ -360,7 +364,6 @@ const CreateQuiz = (props) => {
         >
           <SidePanel
             currentQuiz={currentQuiz}
-            createNewQuizQuestion={createNewQuizQuestion}
             currentQuestionData={currentQuestionData}
             changeQuestion={handleChangeQuestion}
             handleNewQuestion={handleNewQuestionClick}
@@ -370,16 +373,16 @@ const CreateQuiz = (props) => {
         <Grid item xs={9} md={10} lg={10} xl={11}>
           <QuestionCreator
             currentQuestionData={currentQuestionData}
-            quizAnswers={quizAnswers}
-            handleAnswerValueChange={handleAnswerValueChange}
-            handleAnswerCorrectChange={handleAnswerCorrectChange}
+            answers={answers}
+            handleAnswerValueChange={handleQuizAnswerValueChange}
+            handleAnswerCorrectChange={handleQuizAnswerCorrectChange}
+            handleAnswerCorrectToggle={handleTrueFalseAnswerCorrectToggle}
             handleQuestionTextChange={handleQuestionTextChange}
             handleQuestionTextChangeWithValue={
               handleQuestionTextChangeWithValue
             }
             handleQuestionNameChange={handleQuestionNameChange}
             handleLanguageChange={handleLanguageChange}
-            handleLanguageChangeWithValue={handleLanguageChangeWithValue}
             handleSaveQuizButton={handleSaveQuizButton}
             handleExitButton={handleExitButton}
           />

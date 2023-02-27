@@ -1,8 +1,9 @@
-import Answers from "../../../quiz/questionParameters/answers/Answers";
+import QuizAnswers from "../../../quiz/questionParameters/answers/QuizAnswers";
 import { Button, Grid } from "@mui/material";
-import { QuizAnswers } from "../../../../common/types";
+import { QuizQuestionAnswer } from "../../../../common/types";
+
 interface AnswerToQuestionProps {
-  currentAnswers: QuizAnswers | null;
+  currentAnswers: QuizQuestionAnswer[];
   handleAnswerCorrectChange: (key: string) => void;
   handleSendAnswersButton(): void;
 }
@@ -20,14 +21,18 @@ function AnswerToQuestion({
       justifyContent={"center"}
       alignItems={"center"}
       sx={{
-        height: "calc(100vh - 45px)",
+        height: "calc(100vh - 3.5rem)",
         width: "100%",
       }}
     >
       <div className="answersDiv">
-        <Answers
+        <QuizAnswers
           disabled
-          quizAnswers={currentAnswers ? currentAnswers : undefined}
+          quizAnswers={
+            currentAnswers
+              ? (currentAnswers as QuizQuestionAnswer[])
+              : undefined
+          }
           handleAnswerCorrectChange={handleAnswerCorrectChange}
           allowCorrectSwitch
         />

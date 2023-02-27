@@ -9,7 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AnswerDto {
+    private String position;
     private String value;
     @JsonProperty("isCorrect")
     private boolean isCorrect;
+    private int key;
 }

@@ -1,11 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Grid, Typography } from "@mui/material";
+import { Box, Grid, Typography } from "@mui/material";
 import { over } from "stompjs";
 import SockJS from "sockjs-client";
 import SOCKET_URL from "../../../common/components";
 import { ToastContainer } from "react-toastify";
 import { toast } from "react-toastify";
-import { Quiz, initialQuizAnswers, QuizAnswers } from "../../../common/types";
+import {
+  Quiz,
+  initialQuizAnswers,
+  QuizQuestionAnswer,
+  NewQuestionType,
+  QuizQuestionPosition,
+} from "../../../common/types";
 import { Prompt } from "react-router";
 import {
   JoinSessionResponse,
@@ -20,6 +26,7 @@ import "./index.css";
 import JoinForm from "./joinForm/JoinForm";
 import AnswerToQuestion from "./answerToQuestion/AnswerToQuestion";
 import { mergeSort } from "../../helperMethods";
+import TrueFalseAnswers from "../../quiz/questionParameters/answers/TrueFalseAnswers";
 
 //Validates input from the user when he is joining session. If needed, user is notified with Toast notifications
 const validateInputs = (name: string, sessionId): string => {
@@ -41,6 +48,21 @@ const validateInputs = (name: string, sessionId): string => {
 //stomp client used to connect with the server over web socket
 let stompClient;
 
+const getServerLikePosition = (position: string) => {
+  switch (position) {
+    case QuizQuestionPosition.TOPRIGHT:
+      return "TOPRIGHT";
+    case QuizQuestionPosition.TOPLEFT:
+      return "TOPLEFT";
+    case QuizQuestionPosition.BOTTOMRIGHT:
+      return "BOTTOMRIGHT";
+    case QuizQuestionPosition.BOTTOMLEFT:
+      return "BOTTOMLEFT";
+    default:
+      throw new Error(`The position ${position} was not found`);
+  }
+};
+
 //User side of the web socket connection
 const JoinQuiz = () => {
   //Holds the quiz of the session. It's question answers are displayed to the user with each currentQuestionKey change
@@ -51,20 +73,22 @@ const JoinQuiz = () => {
   const [currentQuestionKey, setCurrentQuestionKey] = useState<number>(0);
   //Contains info about which answers are correct and which are false. This info is saved to each question.
   //Student makes the decision which answers he thinks are correct when he is answering the question
-  const [currentAnswers, setCurrentAnswers] = useState<QuizAnswers | null>(
-    initialQuizAnswers
-  );
+  const [currentAnswers, setCurrentAnswers] = useState<
+    QuizQuestionAnswer[] | null
+  >(initialQuizAnswers);
 
-  const handleAnswerCorrectChange = (key: string) => {
-    setCurrentAnswers((prevQuizAnswers) => {
-      return {
-        ...prevQuizAnswers,
-        [key]: {
-          value: prevQuizAnswers![key].value,
-          isCorrect: !prevQuizAnswers![key].isCorrect,
-        },
-      } as QuizAnswers;
-    });
+  const handleQuizAnswerCorrectChange = (key: string) => {
+    setCurrentAnswers(
+      (currentAnswers as QuizQuestionAnswer[]).map((answer) => {
+        if (answer.position === key) {
+          return {
+            ...answer,
+            isCorrect: !answer.isCorrect,
+          };
+        }
+        return answer;
+      })
+    );
   };
 
   //Contains current type of layout the page should have
@@ -131,28 +155,14 @@ const JoinQuiz = () => {
     nextQuestionMessage: NextQuestionMessage
   ): void => {
     const nextKey = nextQuestionMessage.questionKey;
-    setCurrentAnswers((prevAnswers) => {
-      return {
-        ...prevAnswers,
-        topRightAnswer: {
+    setCurrentAnswers(
+      quizRef.current!.questions[nextKey - 1].answers.map((answer) => {
+        return {
+          ...answer,
           isCorrect: false,
-          value: quizRef.current!.questions[nextKey - 1].topRightAnswer.value,
-        },
-        topLeftAnswer: {
-          isCorrect: false,
-          value: quizRef.current!.questions[nextKey - 1].topLeftAnswer.value,
-        },
-        bottomRightAnswer: {
-          isCorrect: false,
-          value:
-            quizRef.current!.questions[nextKey - 1].bottomRightAnswer.value,
-        },
-        bottomLeftAnswer: {
-          isCorrect: false,
-          value: quizRef.current!.questions[nextKey - 1].bottomLeftAnswer.value,
-        },
-      } as QuizAnswers;
-    });
+        };
+      })
+    );
     setCurrentQuestionKey(nextKey);
     setCurrentLayout(LayoutType.AnsweringQuestion);
     textWhenWaiting.current = "undefined";
@@ -277,14 +287,31 @@ const JoinQuiz = () => {
   };
 
   //Sends the answer to the server, which handles it. Then switch the layout to waiting for teacher
-  const handleSendAnswersButton = () => {
-    const newQuestionAnswer: QuestionAnswer = {
+  const handleSendQuizAnswersButton = () => {
+    const newQuestionAnswer = {
       sessionId: sessionId.current,
       questionKey: currentQuestionKey,
-      topLeftAnswer: currentAnswers!.topLeftAnswer.isCorrect,
-      bottomLeftAnswer: currentAnswers!.bottomLeftAnswer.isCorrect,
-      topRightAnswer: currentAnswers!.topRightAnswer.isCorrect,
-      bottomRightAnswer: currentAnswers!.bottomRightAnswer.isCorrect,
+      questionType: NewQuestionType.QUIZ,
+      answers: currentAnswers?.map((answer) => {
+        return {
+          ...answer,
+          position: getServerLikePosition(answer.position),
+        };
+      }) as QuizQuestionAnswer[],
+    } as QuestionAnswer;
+    stompClient.send("/ws/submitAnswer", {}, JSON.stringify(newQuestionAnswer));
+    textWhenWaiting.current = "was";
+    setCurrentAnswers(initialQuizAnswers);
+    setCurrentLayout(LayoutType.WaitingForTeacher);
+  };
+
+  //Sends the answer to the server, which handles it. Then switch the layout to waiting for teacher
+  const handleSendTruefalseAnswer = (event) => {
+    const newQuestionAnswer = {
+      sessionId: sessionId.current,
+      questionKey: currentQuestionKey,
+      questionType: NewQuestionType.TRUEFALSE,
+      answer: event.target.id === "true" ? true : false,
     };
     stompClient.send("/ws/submitAnswer", {}, JSON.stringify(newQuestionAnswer));
     textWhenWaiting.current = "was";
@@ -350,13 +377,33 @@ const JoinQuiz = () => {
           <Typography variant="h5">{secondPauseScreenMessage}</Typography>
         </Grid>
       )}
-      {currentLayout === LayoutType.AnsweringQuestion && (
-        <AnswerToQuestion
-          currentAnswers={currentAnswers}
-          handleAnswerCorrectChange={handleAnswerCorrectChange}
-          handleSendAnswersButton={handleSendAnswersButton}
-        />
-      )}
+      {currentLayout === LayoutType.AnsweringQuestion &&
+        (quiz?.questions[currentQuestionKey - 1].questionType ===
+        NewQuestionType.QUIZ ? (
+          <AnswerToQuestion
+            currentAnswers={currentAnswers as QuizQuestionAnswer[]}
+            handleAnswerCorrectChange={handleQuizAnswerCorrectChange}
+            handleSendAnswersButton={handleSendQuizAnswersButton}
+          />
+        ) : (
+          <Box
+            sx={{
+              height: "100vh",
+              width: "100vw",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Box maxWidth={"60rem"}>
+              <TrueFalseAnswers
+                isCorrect={quiz?.questions[currentQuestionKey - 1].isCorrect!}
+                handleAnswerClick={handleSendTruefalseAnswer}
+                showIcons={false}
+              />
+            </Box>
+          </Box>
+        ))}
     </>
   );
 };

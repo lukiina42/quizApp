@@ -1,5 +1,5 @@
 import React from "react";
-import { Grid, Button, Box, Typography } from "@mui/material";
+import { Grid, Box, Typography } from "@mui/material";
 import EditQuizDialog from "../../../common/EditQuizDialog/EditQuizDialog";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import quizDialogReducer, {
@@ -58,7 +58,6 @@ export default function EditQuizHeader(props: EditQuizHeaderProps) {
       description: editQuizDialog.quizDescription,
       name: editQuizDialog.quizName,
     };
-    debugger;
     saveQuizMutation.mutate({
       bodyToSave,
       userId: currentUserId,

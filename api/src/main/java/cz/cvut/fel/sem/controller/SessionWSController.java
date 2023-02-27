@@ -8,6 +8,7 @@ import cz.cvut.fel.sem.dto.session.forTeacher.MessageType;
 import cz.cvut.fel.sem.dto.session.forTeacher.QuestionEvaluationDto;
 import cz.cvut.fel.sem.dto.session.forTeacher.StudentResultsResponseDto;
 import cz.cvut.fel.sem.dto.session.fromStudent.AnswerToQuestionDto;
+import cz.cvut.fel.sem.dto.session.fromStudent.AnswerToQuestionPayloadDto;
 import cz.cvut.fel.sem.dto.session.fromStudent.JoinSessionRequestDto;
 import cz.cvut.fel.sem.dto.session.fromTeacher.*;
 import cz.cvut.fel.sem.model.session.Session;
@@ -65,8 +66,8 @@ public class SessionWSController {
     }
 
     @MessageMapping("/submitAnswer")
-    private void studentSubmitsAnswer(AnswerToQuestionDto answerToQuestionDto, Principal principal){
-        sessionService.handleStudentSubmitsAnswer(answerToQuestionDto, principal.getName());
+    private void studentSubmitsAnswer(AnswerToQuestionPayloadDto answerToQuestionPayloadDto, Principal principal){
+        sessionService.handleStudentSubmitsAnswer(answerToQuestionPayloadDto, principal.getName());
     }
 
     @MessageMapping("/getStudentResults")
