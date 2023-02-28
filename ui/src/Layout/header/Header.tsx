@@ -10,6 +10,7 @@ import HomePageHeader from "./HomePageHeader/HomePageHeader";
 import AccountMenu from "./AccountMenu/AccountMenu";
 import { useAnchor } from "../../common/useAnchor";
 import EditQuizHeader from "./EditQuizHeader/EditQuizHeader";
+import BasicHeader from "./BasicHeader/BasicHeader";
 
 //The header of the application.
 //It is displayed differently based on current url location in the app and whether the user is guest or logged in
@@ -58,6 +59,16 @@ export default function Header() {
           currentUserId={currentUser.id}
         />
       );
+    }
+    if (
+      ((location.pathname === "/registration" ||
+        location.pathname === "/login") &&
+        currentUser.status === UserStatus.NotLogged) ||
+      location.pathname === "/joinQuiz" ||
+      (location.pathname === "/startQuiz" &&
+        currentUser.status === UserStatus.Logged)
+    ) {
+      return <BasicHeader handleHomeClick={handleHomeClick} />;
     }
     if (location.pathname === "/" && currentUser.status === UserStatus.Logged) {
       return (

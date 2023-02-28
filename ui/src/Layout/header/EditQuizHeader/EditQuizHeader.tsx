@@ -39,10 +39,10 @@ export default function EditQuizHeader(props: EditQuizHeaderProps) {
   };
 
   const saveQuizMutation = useMutation(saveQuiz, {
-    onSuccess: () => {
+    onSuccess: (quizId) => {
       dispatch(
         quizChanged({
-          id: quiz.id,
+          id: quizId,
           name: editQuizDialog.quizName,
           description: editQuizDialog.quizDescription,
           questions: [...quiz.questions],
@@ -55,9 +55,11 @@ export default function EditQuizHeader(props: EditQuizHeaderProps) {
     dialogDispatch({ type: actionTypes.CLOSE });
     const bodyToSave = {
       ...quiz,
+      id: quiz.id === 0 ? null : quiz.id,
       description: editQuizDialog.quizDescription,
       name: editQuizDialog.quizName,
     };
+    console.log(bodyToSave);
     saveQuizMutation.mutate({
       bodyToSave,
       userId: currentUserId,

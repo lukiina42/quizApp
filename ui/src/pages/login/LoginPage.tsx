@@ -9,7 +9,7 @@ const LoginPage = () => (
     direction="column"
     alignItems="center"
     justifyContent="center"
-    style={{ minHeight: "100vh" }}
+    style={{ minHeight: "calc(100vh - 3.5rem)" }}
   >
     <Grid item xs={8}>
       <LoginForm />

@@ -192,7 +192,6 @@ const StartQuiz = (props) => {
   };
 
   //sends the request to server to end the current session
-  //is currently not used but may be useful in the future - for example "end session" button might be added
   const sendRequestToEndTheQuiz = (
     reasonParameter: string,
     lastSessionId?: number
@@ -299,7 +298,7 @@ const StartQuiz = (props) => {
           direction={"column"}
           alignItems={"center"}
           justifyContent={"flex-start"}
-          sx={{ height: "100vh", width: "100%" }}
+          sx={{ height: "calc(100vh - 3.5rem)", width: "100%" }}
         >
           <Grid item xs={3} sx={{ display: "flex", alignItems: "center" }}>
             <Box sx={{ fontSize: "40px", fontWeight: "bold" }}>{quiz.name}</Box>
@@ -358,7 +357,11 @@ const StartQuiz = (props) => {
           alignItems={"center"}
           direction="column"
           justifyContent={"flex-start"}
-          sx={{ height: "100vh", minHeight: "680px", width: "100%" }}
+          sx={{
+            height: "calc(100vh - 3.5rem)",
+            minHeight: "680px",
+            width: "100%",
+          }}
         >
           <Grid item xs={11} sx={{ width: "100%", minHeight: "630px" }}>
             <Grid

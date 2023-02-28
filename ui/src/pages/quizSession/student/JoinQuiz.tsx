@@ -369,7 +369,7 @@ const JoinQuiz = () => {
           direction={"column"}
           alignItems={"center"}
           justifyContent={"center"}
-          sx={{ height: "calc(100vh - 45px)" }}
+          sx={{ height: "calc(100vh - 3.5rem)" }}
         >
           <Grid item xs={2}>
             <Typography variant="h5">{firstPauseScreenMessage}</Typography>
@@ -388,7 +388,7 @@ const JoinQuiz = () => {
         ) : (
           <Box
             sx={{
-              height: "100vh",
+              height: "calc(100vh - 3.5rem)",
               width: "100vw",
               display: "flex",
               justifyContent: "center",
