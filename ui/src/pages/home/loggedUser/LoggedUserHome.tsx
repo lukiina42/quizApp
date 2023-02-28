@@ -29,8 +29,6 @@ export default function LoggedUserHome({ currentUser }: LoggedUserHomeProps) {
     error,
   } = useQuery("quizes", () => loadAllQuizes(currentUser.id));
 
-  console.log(loadedQuizes);
-
   //Deletes the quiz the user chose to delete by it's id
   const deleteQuizMutation = useMutation(deleteQuiz, {
     onSuccess: () => {

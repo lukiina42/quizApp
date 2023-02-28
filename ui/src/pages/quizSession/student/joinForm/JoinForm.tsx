@@ -23,7 +23,7 @@ export default function JoinForm({
       justifyContent={"center"}
       alignItems={"center"} //Header has 45px
       sx={{
-        height: "calc(100vh - 45px)",
+        height: "calc(100vh - 3.5rem)",
       }}
     >
       <Grid
