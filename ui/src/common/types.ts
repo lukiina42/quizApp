@@ -25,6 +25,7 @@ export interface Question {
 export interface Quiz {
   id: number | null;
   name: string;
+  description: string;
   questions: Array<Question>;
 }
 

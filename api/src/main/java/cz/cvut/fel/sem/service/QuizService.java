@@ -43,7 +43,7 @@ public class QuizService {
      * @param userId id of the user who creates the quiz
      */
     @Transactional
-    public void saveQuiz(QuizDto quizDto, Long userId) {
+    public Long saveQuiz(QuizDto quizDto, Long userId) {
         Objects.requireNonNull(quizDto);
         Objects.requireNonNull(userId);
         User owner = userService.getUserById(userId);
@@ -56,7 +56,8 @@ public class QuizService {
         }
         Quiz quizToSave = quizMapper.mapToModel(quizDto);
         quizToSave.setOwner(owner);
-        quizRepository.save(quizToSave);
+        Quiz savedQuiz = quizRepository.save(quizToSave);
+        return savedQuiz.getId();
     }
 
     /**

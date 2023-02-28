@@ -19,7 +19,7 @@ import {
   toastSettings,
   validateQuestionInput,
 } from "./helperMethods/index";
-import { useUser } from "../../context/UserContext";
+import { UserStatus, useUser } from "../../context/UserContext";
 import { saveQuiz } from "../../api/quizApi";
 import { useMutation } from "react-query";
 import { useSelector } from "react-redux";
@@ -32,6 +32,12 @@ import questionDataReducer, {
 const CreateQuiz = (props) => {
   //User whose id is sent with the request to save the quiz
   const currentUser: UserInterface = useUser();
+
+  //not an ideal solution but I am not in the mood to do it properly right now
+  //TODO use history or something, however I will have to set all the state in hooks conditionally etc...
+  if (currentUser.status === UserStatus.NotLogged) {
+    window.location.href = "/";
+  }
 
   //history used to move user to the home page, when he saves the quiz or exits
   const history = useHistory();
@@ -312,10 +318,14 @@ const CreateQuiz = (props) => {
     }
     saveTheQuestion(true);
     const bodyToSave = {
-      ...currentQuiz,
-      id: currentQuiz.id === 0 ? null : currentQuiz.id,
+      //using the params of the quiz from redux, as the id and description might have changed
+      id: quiz.id === 0 ? null : quiz.id,
+      name: quiz.name,
+      description: quiz.description,
       questions: currentQuizRef.current.questions,
     };
+
+    console.log(bodyToSave);
 
     saveQuizMutation.mutate({
       bodyToSave,

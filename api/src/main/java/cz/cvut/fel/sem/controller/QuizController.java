@@ -36,10 +36,9 @@ public class QuizController {
      */
     @CrossOrigin
     @PostMapping(value = "/{userId}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> createQuiz(@PathVariable Long userId, @RequestBody QuizDto quizDto) {
-        quizService.saveQuiz(quizDto, userId);
-        final HttpHeaders headers = RestUtils.createLocationHeaderFromCurrentUri("/{id}", 1);
-        return new ResponseEntity<>(headers, HttpStatus.CREATED);
+    @ResponseStatus(HttpStatus.CREATED)
+    public Long createQuiz(@PathVariable Long userId, @RequestBody QuizDto quizDto) {
+        return quizService.saveQuiz(quizDto, userId);
     }
 
     /**
