@@ -26,6 +26,7 @@ import { useSelector } from "react-redux";
 import questionDataReducer, {
   actionTypes,
 } from "./questionDataReducer/questionDataReducer";
+import { mergeSort } from "../helperMethods";
 
 //The parent component in which the user creates or edits the quiz. It has 2 child components: side panel
 // where user can switch between the questions and questionCreator when user can set the parameters of the question
@@ -49,6 +50,8 @@ const CreateQuiz = (props) => {
   const currentQuizRef = useRef(quiz);
 
   const [currentQuiz, setCurrentQuiz] = useState<Quiz>(quiz);
+
+  console.log("Original questions: ", currentQuiz.questions);
 
   const [currentQuestionData, dispatchQuestionData] = useReducer(
     questionDataReducer,
@@ -172,6 +175,7 @@ const CreateQuiz = (props) => {
   };
 
   const handleChangeQuestion = (key: number) => {
+    console.log("HANDLE CHANGE QUESTION IS RUNNING");
     if (key + 1 === currentQuestionData.questionKey) {
       //don't do anything if current question is clicked
       return;
@@ -252,6 +256,89 @@ const CreateQuiz = (props) => {
       dispatchQuestionData({ type: actionTypes.LOADNEWQUESTION, newQuestion });
       setAnswers(newQuestion.answers);
     }
+  };
+
+  const changeOrderingOfQuestions = (
+    draggedElementKey: number,
+    nextElementKey: number
+  ) => {
+    const topToBottom = draggedElementKey < nextElementKey;
+    //do nothing if the question is dragged to the same position
+    if (topToBottom) {
+      if (nextElementKey - 1 === draggedElementKey) return;
+    } else {
+      if (nextElementKey === draggedElementKey) return;
+    }
+    const updatedQuestions = mergeSort(
+      currentQuiz.questions.map((question) => {
+        if (draggedElementKey === question.key) {
+          if (topToBottom) {
+            return {
+              ...question,
+              key: nextElementKey - 1,
+            };
+          } else {
+            return {
+              ...question,
+              key: nextElementKey,
+            };
+          }
+        }
+        //dragging from top to bottom
+        if (topToBottom) {
+          if (
+            nextElementKey > question.key &&
+            question.key > draggedElementKey
+          ) {
+            return {
+              ...question,
+              key: question.key - 1,
+            };
+          }
+        } else {
+          if (
+            draggedElementKey > question.key &&
+            question.key > nextElementKey - 1
+          ) {
+            return {
+              ...question,
+              key: question.key + 1,
+            };
+          }
+        }
+        return question;
+      })
+    );
+    console.log("Updated questions: ", updatedQuestions);
+
+    //the dragged question is not the one currently selected => need to change the contents
+    if (draggedElementKey !== currentQuestionData.questionKey) {
+      dispatchQuestionData({
+        type: actionTypes.LOADNEXTQUESTION,
+        nextQuestion:
+          updatedQuestions[
+            topToBottom ? nextElementKey - 1 - 1 : nextElementKey - 1
+          ],
+      });
+      setAnswers(
+        updatedQuestions[
+          topToBottom ? nextElementKey - 1 - 1 : nextElementKey - 1
+        ].answers
+      );
+      //change only the current key, the question remains the same
+    } else {
+      dispatchQuestionData({
+        type: actionTypes.CHANGEQUESTIONKEY,
+        key: topToBottom ? nextElementKey - 1 : nextElementKey,
+      });
+    }
+    //update the quiz with reordered questions
+    setCurrentQuiz((prevQuiz) => {
+      return {
+        ...prevQuiz,
+        questions: updatedQuestions,
+      };
+    });
   };
 
   //Gets triggered when user clicks on the trash icon in the question, the question then gets deleted
@@ -378,6 +465,7 @@ const CreateQuiz = (props) => {
             changeQuestion={handleChangeQuestion}
             handleNewQuestion={handleNewQuestionClick}
             handleDeleteQuestion={handleDeleteQuestion}
+            changeOrderingOfQuestions={changeOrderingOfQuestions}
           />
         </Grid>
         <Grid item xs={9} md={10} lg={10} xl={11}>

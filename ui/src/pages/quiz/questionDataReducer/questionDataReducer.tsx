@@ -9,6 +9,7 @@ export const actionTypes = {
   LOADNEXTQUESTION: "LOADNEXTQUESTION",
   LOADNEWQUESTION: "LOADNEWQUESTION",
   DECREASEQUESTIONKEY: "DECREASEQUESTIONKEY",
+  CHANGEQUESTIONKEY: "CHANGEQUESTIONKEY",
 };
 
 export default function questionDataReducer(
@@ -63,6 +64,12 @@ export default function questionDataReducer(
       return {
         ...currentQuestionData,
         questionKey: currentQuestionData.questionKey - 1,
+      };
+    }
+    case actionTypes.CHANGEQUESTIONKEY: {
+      return {
+        ...currentQuestionData,
+        questionKey: action.key,
       };
     }
     default: {

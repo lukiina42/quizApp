@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Grid, Button, Typography, Box } from "@mui/material";
 import AddBoxRoundedIcon from "@mui/icons-material/AddBoxRounded";
 import Popover from "@mui/material/Popover";
@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { NewQuestionType, Quiz } from "../../../common/types";
 import { QuestionData } from "../types/index";
+import "./sidePanel.css";
 
 interface SidePanelProps {
   currentQuiz: Quiz;
@@ -13,6 +14,10 @@ interface SidePanelProps {
   changeQuestion: (key: number) => void;
   handleNewQuestion: (event) => void;
   handleDeleteQuestion: (key: number) => void;
+  changeOrderingOfQuestions: (
+    draggedElementKey: number,
+    nextElementKey: number
+  ) => void;
 }
 
 //Represents the panel on the left, which contains the questions currently created in the quiz
@@ -23,6 +28,7 @@ const SidePanel = (props: SidePanelProps) => {
     currentQuestionData,
     changeQuestion,
     handleNewQuestion,
+    changeOrderingOfQuestions,
   } = props;
   //questions displayed in the panel
   const currentQuestions = currentQuiz.questions;
@@ -57,6 +63,67 @@ const SidePanel = (props: SidePanelProps) => {
     changeQuestion(key);
   };
 
+  useEffect(() => {
+    const draggables = document.querySelectorAll(".draggable");
+    const container = document.querySelector(".dragContainer");
+
+    const handleDragEnd = (e) => {
+      const draggable = document.querySelector(".dragging");
+      if (!draggable) return;
+      const afterElement = getDragAfterElement(container, e.clientY);
+      console.log("Dragged id: ", draggable.id);
+      console.log(
+        "Element after the dragged: ",
+        afterElement ? afterElement.id : null
+      );
+      if (afterElement == null) {
+        console.log("Moving last elementos xd");
+      } else {
+        changeOrderingOfQuestions(
+          parseInt(draggable?.id),
+          parseInt(afterElement.id)
+        );
+      }
+      draggable.classList.remove("dragging");
+    };
+
+    draggables.forEach((draggable) => {
+      draggable.addEventListener("dragstart", () => {
+        draggable.classList.add("dragging");
+      });
+      draggable.addEventListener("dragend", handleDragEnd);
+    });
+
+    container!.addEventListener("dragover", (e) => {
+      e.preventDefault();
+    });
+
+    function getDragAfterElement(container, y) {
+      const draggableElements = [
+        ...container.querySelectorAll(".draggable:not(.dragging)"),
+      ];
+
+      return draggableElements.reduce(
+        (closest, child) => {
+          const box = child.getBoundingClientRect();
+          const offset = y - box.top - box.height / 2;
+          if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+          } else {
+            return closest;
+          }
+        },
+        { offset: Number.NEGATIVE_INFINITY }
+      ).element;
+    }
+    return () => {
+      draggables.forEach((draggable) => {
+        //draggable.removeEventListener("dragstart");
+        draggable.removeEventListener("dragend", handleDragEnd);
+      });
+    };
+  }, [currentQuiz.questions]);
+
   return (
     <>
       <Grid
@@ -64,6 +131,7 @@ const SidePanel = (props: SidePanelProps) => {
         direction="column"
         alignItems="center"
         spacing={0}
+        className="dragContainer"
         justifyContent="flex-start"
         sx={{
           backgroundColor: "#E0DFF0",
@@ -76,7 +144,14 @@ const SidePanel = (props: SidePanelProps) => {
       >
         {/* Map all the current questions into the side panel */}
         {currentQuestions.map((question) => (
-          <Grid item key={question.key}>
+          //@ts-ignore
+          <Grid
+            item
+            key={question.key}
+            id={question.key}
+            draggable={true}
+            className="draggable"
+          >
             <Grid
               container
               direction="row"
