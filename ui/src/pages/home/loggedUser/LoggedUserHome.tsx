@@ -72,6 +72,7 @@ export default function LoggedUserHome({ currentUser }: LoggedUserHomeProps) {
           spacing={2}
           alignItems="center"
           justifyContent="center"
+          gap={"1rem"}
         >
           {isLoading ? (
             <HashLoader
@@ -90,7 +91,9 @@ export default function LoggedUserHome({ currentUser }: LoggedUserHomeProps) {
               ) : (
                 <>
                   <Grid item>
-                    <Typography fontWeight={"bold"}>Your quizzes:</Typography>
+                    <Typography fontSize={"large"} fontWeight={"bold"}>
+                      Your quizes
+                    </Typography>
                   </Grid>
                   <QuizList
                     handleDeleteQuiz={handleDeleteQuiz}

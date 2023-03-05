@@ -262,6 +262,7 @@ const CreateQuiz = (props) => {
     draggedElementKey: number,
     nextElementKey: number
   ) => {
+    if (!nextElementKey) nextElementKey = currentQuiz.questions.length + 1;
     const topToBottom = draggedElementKey < nextElementKey;
     //do nothing if the question is dragged to the same position
     if (topToBottom) {
