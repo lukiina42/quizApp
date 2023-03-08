@@ -26,6 +26,7 @@ import { useSelector } from "react-redux";
 import questionDataReducer, {
   actionTypes,
 } from "./questionDataReducer/questionDataReducer";
+import { mergeSort } from "../helperMethods";
 
 //The parent component in which the user creates or edits the quiz. It has 2 child components: side panel
 // where user can switch between the questions and questionCreator when user can set the parameters of the question
@@ -254,6 +255,89 @@ const CreateQuiz = (props) => {
     }
   };
 
+  const changeOrderingOfQuestions = (
+    draggedElementKey: number,
+    nextElementKey: number
+  ) => {
+    if (!nextElementKey) nextElementKey = currentQuiz.questions.length + 1;
+    const topToBottom = draggedElementKey < nextElementKey;
+    //do nothing if the question is dragged to the same position
+    if (topToBottom) {
+      if (nextElementKey - 1 === draggedElementKey) return;
+    } else {
+      if (nextElementKey === draggedElementKey) return;
+    }
+    const updatedQuestions = mergeSort(
+      currentQuiz.questions.map((question) => {
+        if (draggedElementKey === question.key) {
+          if (topToBottom) {
+            return {
+              ...question,
+              key: nextElementKey - 1,
+            };
+          } else {
+            return {
+              ...question,
+              key: nextElementKey,
+            };
+          }
+        }
+        //dragging from top to bottom
+        if (topToBottom) {
+          if (
+            nextElementKey > question.key &&
+            question.key > draggedElementKey
+          ) {
+            return {
+              ...question,
+              key: question.key - 1,
+            };
+          }
+        } else {
+          if (
+            draggedElementKey > question.key &&
+            question.key > nextElementKey - 1
+          ) {
+            return {
+              ...question,
+              key: question.key + 1,
+            };
+          }
+        }
+        return question;
+      })
+    );
+
+    //the dragged question is not the one currently selected => need to change the contents
+    if (draggedElementKey !== currentQuestionData.questionKey) {
+      dispatchQuestionData({
+        type: actionTypes.LOADNEXTQUESTION,
+        nextQuestion:
+          updatedQuestions[
+            topToBottom ? nextElementKey - 1 - 1 : nextElementKey - 1
+          ],
+      });
+      setAnswers(
+        updatedQuestions[
+          topToBottom ? nextElementKey - 1 - 1 : nextElementKey - 1
+        ].answers
+      );
+      //change only the current key, the question remains the same
+    } else {
+      dispatchQuestionData({
+        type: actionTypes.CHANGEQUESTIONKEY,
+        key: topToBottom ? nextElementKey - 1 : nextElementKey,
+      });
+    }
+    //update the quiz with reordered questions
+    setCurrentQuiz((prevQuiz) => {
+      return {
+        ...prevQuiz,
+        questions: updatedQuestions,
+      };
+    });
+  };
+
   //Gets triggered when user clicks on the trash icon in the question, the question then gets deleted
   const handleDeleteQuestion = (key: number): void => {
     //user wants to delete current question and only one question is in the quiz:
@@ -325,8 +409,6 @@ const CreateQuiz = (props) => {
       questions: currentQuizRef.current.questions,
     };
 
-    console.log(bodyToSave);
-
     saveQuizMutation.mutate({
       bodyToSave,
       userId: currentUser.id,
@@ -356,20 +438,19 @@ const CreateQuiz = (props) => {
         direction="row"
         spacing={0}
         justifyContent="flex-start"
+        flexWrap={"nowrap"}
         //Header has 3.5rem
         sx={{ height: "calc(100vh - 3.5rem)", minHeight: 0 }}
       >
         <Grid
           item
-          xs={3}
-          md={2}
-          lg={2}
-          xl={1}
           sx={{
             // this enables vertical scroll on sidebar only
             minHeight: 0,
             display: "flex",
             maxHeight: "100%",
+            width: "11rem",
+            minWidth: "11rem",
           }}
         >
           <SidePanel
@@ -378,9 +459,10 @@ const CreateQuiz = (props) => {
             changeQuestion={handleChangeQuestion}
             handleNewQuestion={handleNewQuestionClick}
             handleDeleteQuestion={handleDeleteQuestion}
+            changeOrderingOfQuestions={changeOrderingOfQuestions}
           />
         </Grid>
-        <Grid item xs={9} md={10} lg={10} xl={11}>
+        <Grid item sx={{ display: "flex", flexGrow: 1 }}>
           <QuestionCreator
             currentQuestionData={currentQuestionData}
             answers={answers}
