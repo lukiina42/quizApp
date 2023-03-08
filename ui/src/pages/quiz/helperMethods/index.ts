@@ -18,7 +18,7 @@ export const createNewQuestion = (
       return {
         key: key,
         questionType: NewQuestionType.QUIZ,
-        name: "",
+        name: "New quiz question",
         question: {
           value: "",
           language: LanguageType.C,
@@ -29,7 +29,7 @@ export const createNewQuestion = (
       return {
         key: key,
         questionType: NewQuestionType.TRUEFALSE,
-        name: "",
+        name: "New true false question",
         question: {
           value: "",
           language: LanguageType.C,

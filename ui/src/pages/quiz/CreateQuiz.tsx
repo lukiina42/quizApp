@@ -51,8 +51,6 @@ const CreateQuiz = (props) => {
 
   const [currentQuiz, setCurrentQuiz] = useState<Quiz>(quiz);
 
-  console.log("Original questions: ", currentQuiz.questions);
-
   const [currentQuestionData, dispatchQuestionData] = useReducer(
     questionDataReducer,
     {
@@ -175,7 +173,6 @@ const CreateQuiz = (props) => {
   };
 
   const handleChangeQuestion = (key: number) => {
-    console.log("HANDLE CHANGE QUESTION IS RUNNING");
     if (key + 1 === currentQuestionData.questionKey) {
       //don't do anything if current question is clicked
       return;
@@ -310,7 +307,6 @@ const CreateQuiz = (props) => {
         return question;
       })
     );
-    console.log("Updated questions: ", updatedQuestions);
 
     //the dragged question is not the one currently selected => need to change the contents
     if (draggedElementKey !== currentQuestionData.questionKey) {
@@ -413,8 +409,6 @@ const CreateQuiz = (props) => {
       questions: currentQuizRef.current.questions,
     };
 
-    console.log(bodyToSave);
-
     saveQuizMutation.mutate({
       bodyToSave,
       userId: currentUser.id,
@@ -444,20 +438,19 @@ const CreateQuiz = (props) => {
         direction="row"
         spacing={0}
         justifyContent="flex-start"
+        flexWrap={"nowrap"}
         //Header has 3.5rem
         sx={{ height: "calc(100vh - 3.5rem)", minHeight: 0 }}
       >
         <Grid
           item
-          xs={3}
-          md={2}
-          lg={2}
-          xl={1}
           sx={{
             // this enables vertical scroll on sidebar only
             minHeight: 0,
             display: "flex",
             maxHeight: "100%",
+            width: "11rem",
+            minWidth: "11rem",
           }}
         >
           <SidePanel
@@ -469,7 +462,7 @@ const CreateQuiz = (props) => {
             changeOrderingOfQuestions={changeOrderingOfQuestions}
           />
         </Grid>
-        <Grid item xs={9} md={10} lg={10} xl={11}>
+        <Grid item sx={{ display: "flex", flexGrow: 1 }}>
           <QuestionCreator
             currentQuestionData={currentQuestionData}
             answers={answers}

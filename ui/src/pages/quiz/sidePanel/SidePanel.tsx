@@ -1,12 +1,12 @@
 import React, { useEffect } from "react";
-import { Grid, Button, Typography, Box } from "@mui/material";
+import { Grid } from "@mui/material";
 import AddBoxRoundedIcon from "@mui/icons-material/AddBoxRounded";
-import Popover from "@mui/material/Popover";
 import "react-toastify/dist/ReactToastify.css";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { NewQuestionType, Quiz } from "../../../common/types";
+import { Quiz } from "../../../common/types";
 import { QuestionData } from "../types/index";
 import "./sidePanel.css";
+import SidePanelItem from "./sidePanelItem/SidePanelItem";
+import NewQuestionPopover from "./NewQuestionPopover/NewQuestionPopover";
 
 interface SidePanelProps {
   currentQuiz: Quiz;
@@ -19,6 +19,10 @@ interface SidePanelProps {
     nextElementKey: number
   ) => void;
 }
+
+const div = document.createElement("div");
+div.classList.add("dividerDiv");
+div.id = "divider";
 
 function getDragAfterElement(container, y) {
   const draggableElements = [
@@ -85,20 +89,21 @@ const SidePanel = (props: SidePanelProps) => {
   useEffect(() => {
     const draggables = document.querySelectorAll(".draggable");
     const container = document.querySelector(".dragContainer");
+    if (!container) return;
+    const addQuestionIcon = document.getElementById("addQuestion");
 
     const handleDragEnd = (e) => {
       const draggable = document.querySelector(".dragging");
       if (!draggable) return;
       const afterElement = getDragAfterElement(container, e.clientY);
-      console.log("Dragged id: ", draggable.id);
-      console.log(
-        "Element after the dragged: ",
-        afterElement ? afterElement.id : null
-      );
       changeOrderingOfQuestions(
         parseInt(draggable?.id),
         parseInt(afterElement ? afterElement.id : 0)
       );
+      //remove the indicator if it is displayed
+      if (container!.contains(div)) {
+        container!.removeChild(div);
+      }
       draggable.classList.remove("dragging");
     };
 
@@ -109,17 +114,54 @@ const SidePanel = (props: SidePanelProps) => {
       draggable.addEventListener("dragend", handleDragEnd);
     });
 
-    container!.addEventListener("dragover", (e) => {
+    const handleDragOver = (e) => {
       e.preventDefault();
-    });
+      const draggable = document.querySelector(".dragging");
+      if (!draggable) return;
+      const afterElement = getDragAfterElement(container, e.clientY);
+      //if after element exists (we are not dragging to the end), check if the drag indicator should be displayed
+      if (afterElement) {
+        if (parseInt(draggable.id) === parseInt(afterElement.id) - 1) {
+          if (container.contains(div)) {
+            container.removeChild(div);
+          }
+          return;
+        }
+      }
+      //if we are dragging to the end, check if drag indicator should be displayed
+      if (afterElement == null) {
+        if (parseInt(draggable.id) !== currentQuestions.length) {
+          container.insertBefore(div, addQuestionIcon);
+        } else {
+          if (container.contains(div)) container.removeChild(div);
+        }
+      } else {
+        //insert the indicator
+        for (let i = 0; i < container.childNodes?.length; i++) {
+          const node = container.childNodes[i];
+          if (node === afterElement) {
+            const beforeElement = container?.childNodes[i - 1] as HTMLElement;
+            if (!beforeElement) {
+              container.insertBefore(div, afterElement);
+            } else {
+              if (beforeElement!.id !== "divider")
+                container.insertBefore(div, afterElement);
+            }
+          }
+        }
+      }
+    };
+
+    container.addEventListener("dragover", handleDragOver);
 
     return () => {
       draggables.forEach((draggable) => {
         //draggable.removeEventListener("dragstart");
         draggable.removeEventListener("dragend", handleDragEnd);
       });
+      container.removeEventListener("dragover", handleDragOver);
     };
-  }, [currentQuiz.questions, changeOrderingOfQuestions]);
+  }, [currentQuestions, changeOrderingOfQuestions]);
 
   return (
     <>
@@ -141,67 +183,15 @@ const SidePanel = (props: SidePanelProps) => {
       >
         {/* Map all the current questions into the side panel */}
         {currentQuestions.map((question) => (
-          //@ts-ignore
-          <Grid
-            item
+          <SidePanelItem
             key={question.key}
-            id={question.key}
-            draggable={true}
-            className="draggable"
-          >
-            <Grid
-              container
-              direction="row"
-              alignItems={"center"}
-              sx={{
-                backgroundColor: "#D0CDF5",
-                padding: "7px 5.5px 7px 5.5px",
-                margin: "20px 0 20px 0",
-                border: "2px solid #B2ADFD",
-                borderRadius: "4px",
-              }}
-            >
-              <Box
-                component={"div"}
-                id={question.key.toString()}
-                onClick={handleQuestionClick}
-                onMouseEnter={(event) =>
-                  (event.currentTarget.style.cursor = "pointer")
-                }
-                onMouseLeave={(event) =>
-                  (event.currentTarget.style.cursor = "default")
-                }
-                style={{ height: "100%" }}
-              >
-                {currentQuestionData.questionKey === question.key ? (
-                  <Typography sx={{ fontWeight: "bold" }}>
-                    Question {question.key}
-                  </Typography>
-                ) : (
-                  <Typography sx={{ fontWeight: "500" }}>
-                    Question {question.key}
-                  </Typography>
-                )}
-              </Box>
-              <DeleteIcon
-                color="info"
-                onClick={() => handleDeleteQuestion(question.key)}
-                onMouseEnter={(event) => {
-                  event.currentTarget.style.backgroundColor = "#B2ADFD";
-                  event.currentTarget.style.color = "black";
-                  event.currentTarget.style.cursor = "pointer";
-                }}
-                onMouseLeave={(event) => {
-                  event.currentTarget.style.backgroundColor = "inherit";
-                  event.currentTarget.style.color = "#64748B";
-                  event.currentTarget.style.cursor = "default";
-                }}
-                sx={{ borderRadius: "5px" }}
-              />
-            </Grid>
-          </Grid>
+            question={question}
+            currentQuestionData={currentQuestionData}
+            handleQuestionClick={handleQuestionClick}
+            handleDeleteQuestion={handleDeleteQuestion}
+          />
         ))}
-        <Grid item>
+        <Grid item id="addQuestion">
           <AddBoxRoundedIcon
             component={"svg"}
             color="info"
@@ -216,57 +206,13 @@ const SidePanel = (props: SidePanelProps) => {
         </Grid>
       </Grid>
       {/* The popover for which the state is used. It's open operation is trigerred by clicking on + button in the side panel */}
-      <Popover
+      <NewQuestionPopover
         id={id}
         open={open}
         anchorEl={anchorEl}
-        onClose={handlePopoverClose}
-        anchorOrigin={{
-          vertical: "center",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "center",
-          horizontal: "left",
-        }}
-      >
-        <Grid
-          container
-          alignItems="center"
-          spacing={1}
-          justifyContent="flex-start"
-          sx={{ padding: 2, width: 230 }}
-        >
-          <Grid item xs={12}>
-            <Button
-              id={NewQuestionType.QUIZ}
-              color="primary"
-              variant="contained"
-              sx={{ textTransform: "none", width: "100%" }}
-              onClick={(e) => {
-                handlePopoverClose();
-                handleNewQuestion(NewQuestionType.QUIZ);
-              }}
-            >
-              Quiz question
-            </Button>
-          </Grid>
-          <Grid item xs={12}>
-            <Button
-              id={NewQuestionType.TRUEFALSE}
-              color="primary"
-              variant="contained"
-              sx={{ textTransform: "none", width: "100%" }}
-              onClick={() => {
-                handlePopoverClose();
-                handleNewQuestion(NewQuestionType.TRUEFALSE);
-              }}
-            >
-              True/false question
-            </Button>
-          </Grid>
-        </Grid>
-      </Popover>
+        handlePopoverClose={handlePopoverClose}
+        handleNewQuestion={handleNewQuestion}
+      />
     </>
   );
 };
