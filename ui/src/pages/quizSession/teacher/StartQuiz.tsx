@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useCallback } from "react";
 import { Box, Button, Grid, Typography } from "@mui/material";
 import SockJS from "sockjs-client";
 import { over } from "stompjs";
@@ -78,7 +78,6 @@ const StartQuiz = (props) => {
     StudentAnsweredResponse | undefined
   >(undefined);
 
-  const amountOfStudents = useRef(0);
   //In current implementation when user closes the page, the function which sends the request to end the session is called.
   //This is unnecessary at the end of the quiz, this state helps to determine whether the request should be called or not
   const quizAlreadyEnded = useRef(false);
@@ -91,15 +90,103 @@ const StartQuiz = (props) => {
   //boolean telling whether current question is the last one
   const lastQuestion = currentQuizKey === quiz.questions.length;
 
+  const handleQuestionEvaluation = useCallback(
+    (questionEvaluation: QuestionEvaluationType) => {
+      if (questionEvaluation.questionKey === quiz.questions.length) {
+        requestStudentResults();
+      }
+      setCurrentQuestionEvaluation(questionEvaluation);
+      setCurrentLayout(LayoutType.ShowEvaluation);
+      setStudentsAnsweredInfo((prevState) => {
+        //BEWARE, PREV STATE IS ACTUALLY THE INITIAL STATE HERE BECAUSE OF THE CALLBACK SNAPSHOT
+        return {
+          ...prevState,
+          amountOfAnswers: 0,
+        } as StudentAnsweredResponse;
+      });
+    },
+    [quiz.questions.length]
+  );
+
+  const handleCreateSessionResponse = useCallback(
+    (createSessionResponse: CreateSessionMessageResponse) => {
+      setSessionId(createSessionResponse.sessionId);
+      sessionIdRef.current = createSessionResponse.sessionId;
+    },
+    []
+  );
+
+  const handleNewStudentInSession = useCallback(
+    (newStudentInSession: NewStudentMessageResponse) => {
+      setUsers((currUsers) => {
+        return [...currUsers, newStudentInSession.name];
+      });
+    },
+    []
+  );
+
+  const handleStudentResultsResponse = useCallback(
+    (studentResults: StudentResultsResponse) => {
+      setStudentScores(studentResults.studentScores);
+    },
+    []
+  );
+
+  const handleStudentsAnsweredResponse = useCallback(
+    (studentsAnsweredInfo: StudentAnsweredResponse) => {
+      setStudentsAnsweredInfo(studentsAnsweredInfo);
+    },
+    []
+  );
+
+  //First it is decided which type of message was received with property messageType. Then the message is properly handled
+  const onMessageReceived = useCallback(
+    (payload) => {
+      const payloadData = JSON.parse(payload.body);
+      switch (payloadData.messageType) {
+        //Response to create new session request, the session id is in the response
+        case MessageType.CreateSessionResponse:
+          handleCreateSessionResponse(
+            payloadData as CreateSessionMessageResponse
+          );
+          break;
+        //The message from the server with the new user that connected to the session
+        case MessageType.NewStudentInSession:
+          handleNewStudentInSession(payloadData as NewStudentMessageResponse);
+          break;
+        //The server returns the evaluation of the current question
+        case MessageType.QuestionEvaluation:
+          handleQuestionEvaluation(payloadData as QuestionEvaluationType);
+          break;
+        //The server returns results of the students in the quiz
+        case MessageType.StudentResults:
+          handleStudentResultsResponse(payloadData as StudentResultsResponse);
+          break;
+        case MessageType.StudentAnswered:
+          handleStudentsAnsweredResponse(
+            payloadData as StudentAnsweredResponse
+          );
+          break;
+      }
+    },
+    [
+      handleQuestionEvaluation,
+      handleCreateSessionResponse,
+      handleNewStudentInSession,
+      handleStudentResultsResponse,
+      handleStudentsAnsweredResponse,
+    ]
+  );
+
   //when teacher opens connection with the server, create new session
-  const onConnected = () => {
+  const onConnected = useCallback(() => {
     stompClient.subscribe("/user/topic/session", onMessageReceived);
     //request to create of new session with the started quiz id
     const quizIdToSend: CreateSessionMessageRequest = {
       quizId: quiz.id as number,
     };
     stompClient.send("/ws/createsession", {}, JSON.stringify(quizIdToSend));
-  };
+  }, [quiz.id, onMessageReceived]);
 
   const requestStudentResults = () => {
     const getStudentResultsRequest: SessionEvaluationRequest = {
@@ -110,80 +197,6 @@ const StartQuiz = (props) => {
       {},
       JSON.stringify(getStudentResultsRequest)
     );
-  };
-
-  const handleQuestionEvaluation = (
-    questionEvaluation: QuestionEvaluationType
-  ) => {
-    if (questionEvaluation.questionKey === quiz.questions.length) {
-      requestStudentResults();
-    }
-    setCurrentQuestionEvaluation(questionEvaluation);
-    setCurrentLayout(LayoutType.ShowEvaluation);
-    setStudentsAnsweredInfo((prevState) => {
-      //BEWARE, PREV STATE IS ACTUALLY THE INITIAL STATE HERE BECAUSE OF THE CALLBACK SNAPSHOT
-      return {
-        ...prevState,
-        amountOfAnswers: 0,
-      } as StudentAnsweredResponse;
-    });
-  };
-
-  const handleCreateSessionResponse = (
-    createSessionResponse: CreateSessionMessageResponse
-  ) => {
-    setSessionId(createSessionResponse.sessionId);
-    sessionIdRef.current = createSessionResponse.sessionId;
-  };
-
-  const handleNewStudentInSession = (
-    newStudentInSession: NewStudentMessageResponse
-  ) => {
-    amountOfStudents.current = amountOfStudents.current + 1;
-    setUsers((currUsers) => {
-      return [...currUsers, newStudentInSession.name];
-    });
-  };
-
-  const handleStudentResultsResponse = (
-    studentResults: StudentResultsResponse
-  ) => {
-    setStudentScores(studentResults.studentScores);
-  };
-
-  const handleStudentsAnsweredResponse = (
-    studentsAnsweredInfo: StudentAnsweredResponse
-  ) => {
-    setStudentsAnsweredInfo(studentsAnsweredInfo);
-    amountOfStudents.current = studentsAnsweredInfo.amountOfStudents;
-  };
-
-  //First it is decided which type of message was received with property messageType. Then the message is properly handled
-  const onMessageReceived = (payload) => {
-    const payloadData = JSON.parse(payload.body);
-    switch (payloadData.messageType) {
-      //Response to create new session request, the session id is in the response
-      case MessageType.CreateSessionResponse:
-        handleCreateSessionResponse(
-          payloadData as CreateSessionMessageResponse
-        );
-        break;
-      //The message from the server with the new user that connected to the session
-      case MessageType.NewStudentInSession:
-        handleNewStudentInSession(payloadData as NewStudentMessageResponse);
-        break;
-      //The server returns the evaluation of the current question
-      case MessageType.QuestionEvaluation:
-        handleQuestionEvaluation(payloadData as QuestionEvaluationType);
-        break;
-      //The server returns results of the students in the quiz
-      case MessageType.StudentResults:
-        handleStudentResultsResponse(payloadData as StudentResultsResponse);
-        break;
-      case MessageType.StudentAnswered:
-        handleStudentsAnsweredResponse(payloadData as StudentAnsweredResponse);
-        break;
-    }
   };
 
   //Log error in the web socket connection
@@ -213,6 +226,8 @@ const StartQuiz = (props) => {
   };
 
   //open the connection with the server on the first render
+  //TODO: When useEffectEvent is released into stable version of react.. then wrap onConnected into it. Currently rerunning this effect each time onConnected changes (each render) is not needed.
+  //For now this is solved with wrapping the functions in useCallback, however that is by far not perfect and is needed to be rewritten
   useEffect(() => {
     //opens the websocket connection with server
     let Sock = new SockJS(SOCKET_URL);
@@ -227,9 +242,7 @@ const StartQuiz = (props) => {
       sendRequestToEndTheQuiz(EndSessionReason.PAGELEAVE);
       stompClient.disconnect();
     };
-    // disable eslint because of onConnected, tried to wrap it in useCallback but didn't work
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [onConnected]);
 
   //Moves the quiz session to the next question.
   //Handles the button displayed on the question evaluation page and on the start page before the quiz starts
@@ -383,7 +396,9 @@ const StartQuiz = (props) => {
                     ? studentsAnsweredInfo.amountOfAnswers
                     : 0}{" "}
                   /&nbsp;
-                  {amountOfStudents.current}
+                  {studentsAnsweredInfo
+                    ? studentsAnsweredInfo.amountOfStudents
+                    : users.length}
                 </Typography>
               </Grid>
             </Grid>
