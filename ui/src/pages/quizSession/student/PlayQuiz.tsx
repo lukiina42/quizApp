@@ -64,7 +64,7 @@ const getServerLikePosition = (position: string) => {
 };
 
 //User side of the web socket connection
-const JoinQuiz = () => {
+const PlayQuiz = () => {
   //Holds the quiz of the session. It's question answers are displayed to the user with each currentQuestionKey change
   const [quiz, setQuiz] = useState<Quiz | null>(null);
 
@@ -245,14 +245,19 @@ const JoinQuiz = () => {
     stompClient = over(Sock);
     stompClient.debug = null;
     stompClient.connect({}, onConnected, onError);
-    //when user closes the page, delete the window event handlers
+    // TODO instead of disabling it like this (currently there is a bug that only initial state is stored in the onConnected callback here), add useEffectEvent when it is released
+
     return () => {
-      //reset event handler of the window
-      window.removeEventListener("beforeunload", alertUser);
+      stompClient.disconnect();
     };
-    // disable eslint because of onConnected, tried to wrap it in useCallback but didn't work
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    return () => {
+      window.removeEventListener("beforeunload", alertUser);
+    };
+  });
 
   //handles user joinng the session. Checks the inputs and sends the request to join the session to server
   const handleJoinQuizButton = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -408,4 +413,4 @@ const JoinQuiz = () => {
   );
 };
 
-export default JoinQuiz;
+export default PlayQuiz;
