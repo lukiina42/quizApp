@@ -1,20 +1,14 @@
 import React, { useEffect, useMemo, useRef, useCallback } from "react";
-import { Box, Button, Grid, Typography } from "@mui/material";
 import SockJS from "sockjs-client";
 import { over } from "stompjs";
 import { useState } from "react";
 import SOCKET_URL from "../../../common/components";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import PersonIcon from "@mui/icons-material/Person";
 import { Prompt } from "react-router";
 import { useHistory } from "react-router-dom";
 import { Quiz, Question } from "../../../common/types";
 import QuestionDisplay from "./questionDisplay/QuestionDisplay";
 import QuestionEvaluation from "./questionEvaluation/QuestionEvaluation";
 import StudentResults from "./studentResults/StudentResults";
-import { HashLoader } from "react-spinners";
 import {
   CreateSessionMessageRequest,
   CreateSessionMessageResponse,
@@ -30,6 +24,7 @@ import {
   StudentResultsResponse,
   StudentScoresType,
 } from "./types";
+import QuizStart from "./quizStart/QuizStart";
 
 //finds the question with current key
 const getTheQuestionByKey = (quiz: Quiz, key: number): Question | null => {
@@ -47,7 +42,7 @@ let stompClient;
 //This component handle teacher's view when he starts a quiz
 // I have had a lot of troubles with stale props in onMessageReceived callback here.
 // The solution is to create refs of the variables I need in their current state in the callback
-const StartQuiz = (props) => {
+const ControlQuiz = (props) => {
   const quiz: Quiz = props.location.state.quiz;
 
   //history used to move user to different page. Used at the end of the quiz to move teacher to the home page
@@ -219,7 +214,7 @@ const StartQuiz = (props) => {
     stompClient.send("/ws/endSession", {}, JSON.stringify(endSessionRequest));
   };
 
-  //makes sure that user gets alerted when he leaves
+  //makes sure that user gets alerted when he CLOSES the page. When the user moves between the routes, the returned Prompt from react router is trigerred
   const alertUser = (e): void => {
     e.preventDefault();
     e.returnValue = "";
@@ -234,15 +229,19 @@ const StartQuiz = (props) => {
     stompClient = over(Sock);
     stompClient.debug = null;
     stompClient.connect({}, onConnected, onError);
-    //Event listener for handling the case when user wants to leave the page but the session is opened.
-    //It asks the user if he is sure he wants to end the current session
-    window.addEventListener("beforeunload", alertUser);
     return () => {
-      window.removeEventListener("beforeunload", alertUser);
       sendRequestToEndTheQuiz(EndSessionReason.PAGELEAVE);
       stompClient.disconnect();
     };
   }, [onConnected]);
+
+  useEffect(() => {
+    //Event listener for handling the case when user wants to CLOSE the whole page but the session is opened.
+    window.addEventListener("beforeunload", alertUser);
+    return () => {
+      window.removeEventListener("beforeunload", alertUser);
+    };
+  }, []);
 
   //Moves the quiz session to the next question.
   //Handles the button displayed on the question evaluation page and on the start page before the quiz starts
@@ -306,117 +305,20 @@ const StartQuiz = (props) => {
         message="If you leave now, the whole session will end. Are you sure you want to do this?"
       />
       {currentLayout === LayoutType.UsersJoining && (
-        <Grid
-          container
-          direction={"column"}
-          alignItems={"center"}
-          justifyContent={"flex-start"}
-          sx={{ height: "calc(100vh - 3.5rem)", width: "100%" }}
-        >
-          <Grid item xs={3} sx={{ display: "flex", alignItems: "center" }}>
-            <Box sx={{ fontSize: "40px", fontWeight: "bold" }}>{quiz.name}</Box>
-          </Grid>
-          <Grid item xs={1}>
-            <Box sx={{ fontSize: "20px", display: "flex" }}>
-              {sessionId !== 0 ? (
-                <>
-                  <Typography>Session id for students:</Typography>
-                  <Typography fontWeight={"bold"}>{sessionId}</Typography>
-                </>
-              ) : (
-                <HashLoader loading={true} size={50} color={"#7D93FF"} />
-              )}
-            </Box>
-          </Grid>
-          <Grid item xs={1} sx={{ display: "flex", alignItems: "center" }}>
-            <Typography fontWeight={"bold"} fontSize={"20"}>
-              The users currently connected to the quiz:
-            </Typography>
-          </Grid>
-          <Grid item xs sx={{ width: "90%" }}>
-            <Grid container justifyContent={"center"} sx={{ width: "100%" }}>
-              {users.map((user) => (
-                <Grid item key={user}>
-                  <ListItemButton
-                    onMouseEnter={(event) =>
-                      (event.currentTarget.style.cursor = "default")
-                    }
-                  >
-                    <ListItemIcon>
-                      <PersonIcon />
-                    </ListItemIcon>
-                    <ListItemText primary={user} />
-                  </ListItemButton>
-                </Grid>
-              ))}
-            </Grid>
-          </Grid>
-          <Grid item xs={2}>
-            {users.length > 0 && (
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleNextQuestionButton}
-              >
-                Start the quiz
-              </Button>
-            )}
-          </Grid>
-        </Grid>
+        <QuizStart
+          sessionId={sessionId}
+          quiz={quiz}
+          users={users}
+          handleNextQuestionButton={handleNextQuestionButton}
+        />
       )}
       {currentLayout === LayoutType.DisplayQuestion && (
-        <Grid
-          container
-          alignItems={"center"}
-          direction="column"
-          justifyContent={"flex-start"}
-          sx={{
-            height: "calc(100vh - 3.5rem)",
-            minHeight: "680px",
-            width: "100%",
-          }}
-        >
-          <Grid item xs={11} sx={{ width: "100%", minHeight: "630px" }}>
-            <Grid
-              container
-              direction={"column"}
-              alignItems="center"
-              justifyContent={"center"}
-              sx={{ width: "100%", height: "100%" }}
-            >
-              <Grid item xs={11} sx={{ width: "100%" }}>
-                <QuestionDisplay
-                  currentQuestion={currentQuestion as Question}
-                />
-              </Grid>
-              <Grid item xs={1}>
-                <Typography fontWeight={"bold"} fontSize={"20px"}>
-                  Amount of students who answered / total students :&nbsp;
-                  {studentsAnsweredInfo
-                    ? studentsAnsweredInfo.amountOfAnswers
-                    : 0}{" "}
-                  /&nbsp;
-                  {studentsAnsweredInfo
-                    ? studentsAnsweredInfo.amountOfStudents
-                    : users.length}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Grid>
-          <Grid
-            item
-            xs
-            sx={{ minHeight: "50px", width: "100%", textAlign: "center" }}
-          >
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleEndQuestionButton}
-            >
-              End the question
-            </Button>
-          </Grid>
-        </Grid>
+        <QuestionDisplay
+          currentQuestion={currentQuestion as Question}
+          handleEndQuestionButton={handleEndQuestionButton}
+          studentsAnsweredInfo={studentsAnsweredInfo}
+          usersLength={users.length}
+        />
       )}
       {currentLayout === LayoutType.ShowEvaluation && (
         <QuestionEvaluation
@@ -437,4 +339,4 @@ const StartQuiz = (props) => {
   );
 };
 
-export default StartQuiz;
+export default ControlQuiz;
